@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#006c49">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>EcoQuest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,0&display=block" rel="stylesheet">
+<style>
+/* Layout: one phone frame centred on a soft "clean air" stage; on a real phone the frame disappears and the app fills the screen.
+   Tokens come from the EcoQuest Kinetic design system (DESIGN.md). Single light look by choice: the app is designed as luminous glass on white. */
+:root{
+  color-scheme: light;
+  --stage:#e7f3f0;
+  --canvas:#f8fafc;
+  --ink:#0f172a; --ink-2:#334155; --muted:#64748b;
+  --emerald:#10b981; --emerald-deep:#059669; --forest:#006c49; --mint:#d1fae5;
+  --cyan:#0ea5e9; --cyan-deep:#0284c7; --sky:#e0f2fe;
+  --gold:#f59e0b; --gold-deep:#d97706; --cream:#fef3c7;
+  --violet:#4f46e5; --lilac:#eef0ff;
+  --danger:#ba1a1a;
+  --white:#ffffff;
+  --glass:rgba(255,255,255,.82); --hair:rgba(15,23,42,.08); --track:rgba(15,23,42,.07);
+  --kinetic:linear-gradient(135deg,#10b981 0%,#0ea5e9 100%);
+  --golden:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+  --display:'Sora',ui-sans-serif,system-ui,sans-serif;
+  --body:'Plus Jakarta Sans',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --s-scale:1;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:radial-gradient(1200px 600px at 20% 10%,#d9f7ea 0%,transparent 60%),radial-gradient(900px 600px at 90% 90%,#dbeefe 0%,transparent 60%),var(--stage);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(14,165,233,.55);outline-offset:2px}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap;direction:ltr;-webkit-font-feature-settings:'liga';font-feature-settings:'liga';font-variation-settings:'FILL' 0,'wght' 500;vertical-align:middle;overflow:hidden;max-width:1.2em}
+.fill{font-variation-settings:'FILL' 1,'wght' 500}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums}
+
+/* ---------- Stage & phone ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding-block:24px;padding-inline:16px}
+.phone{position:relative;width:100%;max-width:400px;height:min(860px,calc(100dvh - 48px));min-height:600px;border-radius:48px;border:10px solid #0f172a;background:var(--canvas);overflow:hidden;box-shadow:0 40px 80px -20px rgba(15,23,42,.35),0 0 0 2px #334155}
+#root{height:100%}
+.side{max-width:300px;display:flex;flex-direction:column;gap:16px}
+.side h2{font-family:var(--display);font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.side p{margin:0;color:var(--ink-2);line-height:1.6}
+.side ul{margin:0;padding-left:18px;color:var(--ink-2);line-height:1.7}
+.side .reset{align-self:flex-start;background:var(--white);border:1px solid var(--hair);border-radius:999px;padding:10px 18px;font-weight:700;color:var(--cyan-deep)}
+@media (max-width:900px){.side{display:none}}
+@media (max-width:520px){
+  .stage{padding:0;display:block;height:100%;min-height:0}
+  .phone{max-width:none;height:100%;min-height:0;border:0;border-radius:0;box-shadow:none}
+}
+
+.app{height:100%;display:flex;flex-direction:column;position:relative}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.pad > *,.s-main > *{flex-shrink:0}
+
+/* ---------- Welcome ---------- */
+.welcome{height:100%;display:flex;flex-direction:column;padding:56px 22px 28px;gap:22px;background:linear-gradient(180deg,#ecfdf5 0%,#f8fafc 45%,#e0f2fe 100%);overflow-y:auto}
+.logo{width:56px;height:56px;border-radius:18px;background:var(--kinetic);display:grid;place-items:center;color:#fff;box-shadow:0 12px 28px -6px rgba(16,185,129,.45)}
+.logo .ms{font-size:30px}
+.welcome h1{font-family:var(--display);font-size:34px;letter-spacing:-.03em;line-height:1.1;margin:0}
+.welcome .lead{margin:0;color:var(--ink-2);font-size:16px;line-height:1.5}
+.choice{display:flex;gap:16px;align-items:flex-start;text-align:left;padding:20px;border-radius:28px;background:var(--glass);border:1.5px solid rgba(255,255,255,.95);box-shadow:0 16px 40px -8px rgba(14,165,233,.15);transition:transform .15s}
+.choice:active{transform:scale(.98)}
+.choice .ic{flex:none;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff}
+.choice .ic .ms{font-size:28px}
+.choice h2{font-family:var(--display);font-size:19px;margin:0 0 4px}
+.choice p{margin:0;color:var(--ink-2);font-size:14px;line-height:1.45}
+.choice.simple-c{background:#fff;border:2px solid var(--ink)}
+.choice.simple-c h2{font-size:22px}
+.choice.simple-c p{font-size:17px;color:var(--ink)}
+.small-note{font-size:13px;color:var(--muted);text-align:center;margin:auto 0 0}
+
+/* ---------- Full mode: header ---------- */
+.hd{display:flex;align-items:center;gap:10px;padding:18px 18px 12px;background:rgba(248,250,252,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--hair);flex:none}
+.hd .logo{width:40px;height:40px;border-radius:14px}
+.hd .logo .ms{font-size:22px}
+.brand{flex:1;min-width:0}
+.brand b{display:block;font-family:var(--display);font-size:19px;letter-spacing:-.02em;color:var(--forest)}
+.brand small{display:block;font-family:var(--display);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan-deep);font-weight:700}
+.coin-pill{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 8px;border-radius:999px;background:var(--cream);border:1px solid rgba(245,158,11,.35);font-family:var(--display);font-weight:700;font-size:14px;color:#7c4a03}
+.coin{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 60%,#b45309);display:inline-grid;place-items:center;color:#7c4a03;font-size:11px;font-weight:800;font-family:var(--display);box-shadow:inset 0 0 0 1.5px #fcd34d;flex:none}
+.avatar{width:40px;height:40px;border-radius:50%;background:conic-gradient(from 200deg,#10b981,#0ea5e9,#10b981);padding:2px;flex:none}
+.avatar span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#ecfdf5;font-family:var(--display);font-weight:800;color:var(--forest);font-size:15px}
+.back{width:40px;height:40px;border-radius:50%;background:var(--lilac);display:grid;place-items:center}
+
+/* ---------- Full mode: nav ---------- */
+.nav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(255,255,255,.94);backdrop-filter:blur(20px);border-top:1px solid var(--hair);padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:11px;font-weight:600;color:var(--muted);border-radius:14px}
+.nav button .ms{font-size:24px}
+.nav button.on{color:var(--forest)}
+.nav button.on .ms{font-variation-settings:'FILL' 1,'wght' 600}
+.nav button.on::after{content:"";width:18px;height:3px;border-radius:3px;background:var(--emerald)}
+
+/* ---------- Full mode: content ---------- */
+.pad{padding:16px 18px 28px;display:flex;flex-direction:column;gap:16px}
+.card{background:#fff;border-radius:28px;padding:18px;border:1px solid var(--hair);box-shadow:0 8px 32px -4px rgba(15,23,42,.05)}
+.card h3{margin:0;font-family:var(--display);font-size:17px;letter-spacing:-.01em}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan-deep);margin:0}
+.muted{color:var(--muted)}
+.t-sm{font-size:12.5px;line-height:1.45}
+.t-md{font-size:14px;line-height:1.5}
+.h-sec{font-family:var(--display);font-size:19px;margin:6px 0 -4px;letter-spacing:-.01em}
+.chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--display);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.chip.g{background:var(--mint);color:var(--forest)}
+.chip.c{background:var(--sky);color:var(--cyan-deep)}
+.chip.o{background:var(--cream);color:#92400e}
+.chip.v{background:var(--lilac);color:var(--violet)}
+.chip.d{background:var(--ink);color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;padding:0 22px;border-radius:999px;font-weight:700;font-size:15px;transition:transform .12s,opacity .2s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn.k{background:var(--kinetic);color:#fff;box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 12px 24px -8px rgba(14,165,233,.5)}
+.btn.gold{background:var(--golden);color:#fff;box-shadow:0 10px 22px -8px rgba(217,119,6,.6)}
+.btn.forest{background:var(--forest);color:#fff}
+.btn.glass{background:#fff;color:var(--cyan-deep);border:1px solid rgba(14,165,233,.28)}
+.btn.sm{height:38px;padding:0 14px;font-size:13px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.bar{height:10px;border-radius:999px;background:var(--track);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:inherit;background:var(--kinetic);transition:width .5s}
+.bar.gold i{background:var(--golden)}
+.tabs{display:flex;gap:6px;padding:5px;background:var(--lilac);border-radius:999px}
+.tabs button{flex:1;height:40px;border-radius:999px;font-weight:700;font-size:13.5px;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:6px}
+.tabs button.on{background:#fff;color:var(--forest);box-shadow:0 4px 14px -4px rgba(15,23,42,.15)}
+.hscroll{display:flex;gap:8px;overflow-x:auto;margin:0 -18px;padding:2px 18px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.pillbtn{flex:none;display:flex;align-items:center;gap:6px;height:42px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid var(--hair);font-weight:700;font-size:14px}
+.pillbtn.on{background:var(--cyan-deep);color:#fff;border-color:transparent;box-shadow:0 10px 20px -8px rgba(2,132,199,.6)}
+
+/* home */
+.hello h1{font-family:var(--display);font-size:28px;letter-spacing:-.025em;margin:4px 0 4px}
+.hello p{margin:0;color:var(--ink-2);font-size:14px}
+.wallet{border-radius:30px;padding:20px;color:#fff;background:linear-gradient(135deg,#047857 0%,#0e7490 60%,#0369a1 100%);position:relative;overflow:hidden}
+.wallet::after{content:"";position:absolute;right:-50px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(110,231,183,.45),transparent 70%)}
+.wallet .big{font-family:var(--display);font-size:38px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.wallet .bar{background:rgba(255,255,255,.2);height:8px}
+.wallet .bar i{background:linear-gradient(90deg,#6ee7b7,#7dd3fc)}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.quick button{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--ink-2);text-align:center;line-height:1.2}
+.quick .q{width:56px;height:56px;border-radius:20px;display:grid;place-items:center;background:#fff;border:1px solid var(--hair);box-shadow:0 6px 18px -6px rgba(15,23,42,.12)}
+.quick .q .ms{font-size:26px}
+.dep{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--hair)}
+.dep:first-of-type{border-top:0}
+.line{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:28px;padding:0 8px;border-radius:9px;font-family:var(--display);font-weight:800;font-size:13px}
+.line.T1{background:var(--sky);color:var(--cyan-deep);border:1px solid rgba(14,165,233,.3)}
+.line.B1{background:var(--mint);color:var(--emerald-deep);border:1px solid rgba(16,185,129,.3)}
+.mins{font-family:var(--display);font-weight:800;font-size:18px;color:var(--forest);font-variant-numeric:tabular-nums}
+.mins small{font-size:12px;font-weight:600;color:var(--muted)}
+
+/* ecocity */
+.status{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.status > div{background:#fff;border:1px solid var(--hair);border-radius:22px;padding:12px 14px;display:flex;gap:10px;align-items:center}
+.status b{font-family:var(--display);font-size:15px;display:block}
+.status small{color:var(--muted);font-size:12px}
+.mapbox{position:relative;border-radius:32px;overflow:hidden;background:#eef4ff;border:1px solid var(--hair);box-shadow:0 16px 40px -12px rgba(14,165,233,.25)}
+.mapscroll{overflow:auto;max-height:340px;scrollbar-width:none}
+.mapscroll::-webkit-scrollbar{display:none}
+.mapscroll svg{display:block;max-width:none}
+.map-ctrl.left{right:auto;left:12px}
+.map-ctrl{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:8px}
+.map-ctrl button{width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 6px 16px -4px rgba(15,23,42,.2)}
+.stop{cursor:pointer}
+.stop:hover circle.dot{stroke-width:5}
+.pulse{animation:pulse 2s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.4);opacity:0}}
+.popup{display:flex;flex-direction:column;gap:10px}
+.quest{background:linear-gradient(160deg,#fff 0%,#f0fdf9 100%)}
+.rewards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--lilac);padding:8px;border-radius:22px}
+.rewards > div{background:#fff;border-radius:16px;padding:10px 6px;text-align:center}
+.rewards b{display:block;font-family:var(--display);font-size:16px}
+.rewards small{font-size:11px;color:var(--muted)}
+.timeline{display:flex;flex-direction:column}
+.tl{display:grid;grid-template-columns:28px 1fr auto;gap:10px;position:relative;padding-bottom:14px}
+.tl:not(:last-child)::before{content:"";position:absolute;left:13px;top:28px;bottom:0;border-left:2px dashed var(--hair)}
+.tl .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+.tl .dot .ms{font-size:16px}
+.tl b{display:block;font-size:14.5px}
+.tl small{font-size:12.5px;color:var(--muted)}
+.team{display:flex;gap:12px;align-items:center;background:var(--lilac);border-radius:24px;padding:14px}
+
+/* quests */
+.streak{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid rgba(245,158,11,.25)}
+.flame{width:52px;height:52px;border-radius:18px;background:var(--golden);display:grid;place-items:center;color:#fff;flex:none}
+.legend{background:linear-gradient(160deg,#ffffff 0%,#ecfdf5 70%,#e0f2fe 100%);border:1.5px solid rgba(16,185,129,.25)}
+.legend h2{font-family:var(--display);font-size:22px;letter-spacing:-.02em;margin:6px 0 4px;line-height:1.2}
+.checks{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;font-weight:600}
+.checks span{display:flex;align-items:center;gap:4px}
+.mission{display:grid;grid-template-columns:44px 1fr;gap:12px}
+.mission .ico{width:44px;height:44px;border-radius:16px;display:grid;place-items:center}
+.mission h4{margin:0;font-size:15.5px;font-family:var(--display)}
+.mission p{margin:4px 0 8px;font-size:13px;color:var(--ink-2);line-height:1.45}
+.ach{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ach > div{background:#fff;border:1px solid var(--hair);border-radius:22px;padding:14px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ach b{font-size:12.5px;font-family:var(--display)}
+.ach small{font-size:11px;color:var(--muted);line-height:1.3}
+.ach .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+
+/* shop */
+.treasure{background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 50%,#e0f2fe 100%);border:1px solid rgba(245,158,11,.3)}
+.treasure .big{font-family:var(--display);font-size:40px;font-weight:800;letter-spacing:-.03em;color:#7c4a03;font-variant-numeric:tabular-nums}
+.offer{padding:0;overflow:hidden}
+.art{height:120px;position:relative;display:flex;align-items:flex-end;padding:12px 14px;color:#fff}
+.art{height:150px;overflow:hidden}
+.art .artsvg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,0) 40%,rgba(15,23,42,.72) 100%);pointer-events:none}
+.art .cap{position:relative;z-index:1}
+.art .chip{position:absolute;top:12px;left:12px;z-index:1}
+.art .dist{position:absolute;top:12px;right:12px;z-index:1;background:rgba(15,23,42,.55);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+.art.preview{border-radius:24px;height:140px}
+.tilesvg{width:100%;height:100%;display:block}
+.skinpic{width:64px;height:64px;flex:none}
+.art h4{margin:0;font-family:var(--display);font-size:17px;line-height:1.2;max-width:75%;text-shadow:0 1px 8px rgba(0,0,0,.25)}
+.art small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;opacity:.9;margin-bottom:2px}
+.offer .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.price{display:flex;align-items:center;gap:8px;background:var(--lilac);border-radius:999px;padding:6px 14px 6px 8px;font-family:var(--display);font-weight:800;font-size:16px}
+.price s{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:500}
+.skin{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center}
+.skin .ic{width:56px;height:56px;border-radius:50%;overflow:hidden}
+.skin .ic .ms{font-size:30px}
+.skin h4{margin:2px 0;font-family:var(--display);font-size:15px}
+
+/* ranks */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;text-align:center}
+.podium .who{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
+.podium .medal{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:#fff;border:3px solid var(--sky);font-size:24px}
+.podium .step{border-radius:20px 20px 8px 8px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:28px;color:var(--ink-2);background:linear-gradient(180deg,#e0e7ff,#eef2ff)}
+.podium .first .step{background:linear-gradient(180deg,#fde68a,#fef3c7);color:#92400e}
+.podium b{font-family:var(--display);font-size:13.5px}
+.podium small{font-size:12px;color:var(--cyan-deep);font-weight:700}
+.lb{display:grid;grid-template-columns:30px 40px 1fr auto;gap:10px;align-items:center;padding:12px 14px;background:#fff;border:1px solid var(--hair);border-radius:20px}
+.lb.me{background:var(--mint);border-color:rgba(16,185,129,.4)}
+.lb .rk{font-family:var(--display);font-weight:800;font-size:16px;text-align:center}
+.lb .face{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-family:var(--display);color:#fff}
+.lb b{font-size:14px}
+.lb .xp{text-align:right;font-family:var(--display);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+.lb .xp small{display:block;font-family:var(--body);font-weight:500;font-size:11px;color:var(--muted)}
+.you{background:linear-gradient(135deg,#047857,#0369a1);color:#fff;border-radius:26px;padding:16px;display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center}
+
+/* profile */
+.hero-p{text-align:center;background:linear-gradient(180deg,#e0f2fe 0%,#ecfdf5 100%);border-radius:36px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.big-av{width:120px;height:120px;border-radius:50%;background:conic-gradient(from 200deg,#10b981,#0ea5e9,#10b981);padding:4px;position:relative}
+.big-av span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#fff;font-size:52px}
+.hero-p h2{font-family:var(--display);font-size:26px;margin:6px 0 0;letter-spacing:-.02em}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats > div{background:#fff;border:1px solid var(--hair);border-radius:24px;padding:14px}
+.stats b{display:block;font-family:var(--display);font-size:20px;margin-top:8px}
+.stats small{color:var(--muted);font-size:12px}
+.setting{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--hair)}
+.setting:first-of-type{border-top:0}
+
+/* ---------- Sheets ---------- */
+#sheet:empty{display:none}
+.backdrop{position:absolute;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(2px);z-index:20;display:flex;align-items:flex-end;animation:fade .2s}
+.panel{width:100%;max-height:88%;overflow-y:auto;background:var(--canvas);border-radius:32px 32px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom,0px));animation:up .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:14px}
+.grab{width:44px;height:5px;border-radius:5px;background:rgba(15,23,42,.18);margin:0 auto 4px}
+.panel h3{font-family:var(--display);font-size:20px;margin:0;letter-spacing:-.01em}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+#toast{position:absolute;left:16px;right:16px;top:16px;z-index:40;display:flex;justify-content:center;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:0 12px 30px -8px rgba(15,23,42,.5);animation:toast 2.6s forwards}
+@keyframes toast{0%{transform:translateY(-20px);opacity:0}10%,85%{transform:none;opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+.fly{position:absolute;left:50%;top:40%;z-index:45;font-family:var(--display);font-weight:800;font-size:34px;color:var(--gold-deep);text-shadow:0 2px 0 #fff,0 8px 20px rgba(217,119,6,.4);animation:fly 1.3s forwards;pointer-events:none;transform:translateX(-50%)}
+@keyframes fly{0%{transform:translate(-50%,20px) scale(.6);opacity:0}25%{transform:translate(-50%,0) scale(1.15);opacity:1}100%{transform:translate(-50%,-160px) scale(.8);opacity:0}}
+
+/* ---------- Buy flow + tickets (shared) ---------- */
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:6px;border-radius:6px;background:var(--track)}
+.steps i.on{background:var(--emerald)}
+.opt{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;text-align:left;width:100%;padding:14px;border-radius:22px;background:#fff;border:1.5px solid var(--hair)}
+.opt:hover{border-color:rgba(16,185,129,.5)}
+.opt .ic{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:var(--mint);color:var(--forest)}
+.opt b{display:block;font-size:15.5px}
+.opt small{color:var(--muted);font-size:12.5px;line-height:1.4;display:block}
+.opt .p{font-family:var(--display);font-weight:800;font-size:16px;color:var(--forest);white-space:nowrap}
+.opt.sel{border-color:var(--emerald);background:#f0fdf9}
+.stepper{display:flex;align-items:center;justify-content:center;gap:22px}
+.stepper button{width:56px;height:56px;border-radius:50%;background:#fff;border:1.5px solid var(--hair);display:grid;place-items:center}
+.stepper .ms{font-size:28px}
+.stepper output{font-family:var(--display);font-size:40px;font-weight:800;min-width:60px;text-align:center}
+.recap{background:#fff;border-radius:22px;border:1px solid var(--hair);padding:4px 16px}
+.recap div{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid var(--hair);font-size:14.5px}
+.recap div:first-child{border-top:0}
+.recap .tot{font-family:var(--display);font-weight:800;font-size:18px}
+.demo-note{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:#92400e;background:var(--cream);border-radius:16px;padding:10px 12px;line-height:1.4}
+.ok{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+.ok .check{width:76px;height:76px;border-radius:50%;background:var(--emerald);color:#fff;display:grid;place-items:center;animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+.ok .check .ms{font-size:44px}
+@keyframes pop{from{transform:scale(.3)}}
+.ticket{background:#fff;border-radius:26px;border:1.5px solid var(--hair);overflow:hidden}
+.ticket .top{background:var(--kinetic);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.ticket .top b{font-family:var(--display);font-size:16px}
+.ticket .mid{padding:16px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;border-top:2px dashed var(--hair)}
+.ticket canvas{width:108px;height:108px;image-rendering:pixelated;border-radius:8px;background:#fff}
+.valid{display:flex;align-items:center;gap:6px;color:var(--forest);font-weight:700;font-size:13.5px}
+
+/* ======================================================================
+   SIMPLE MODE: large type, high contrast, flat surfaces, four big tabs.
+   ====================================================================== */
+.simple{background:#fff;font-size:calc(19px * var(--s-scale))}
+.simple.big{--s-scale:1.18}
+.s-head{flex:none;display:flex;align-items:center;gap:12px;padding:18px 16px 14px;border-bottom:2px solid var(--ink);background:#fff}
+.s-head .logo{width:44px;height:44px;border-radius:14px;box-shadow:none;background:var(--forest)}
+.s-head h1{flex:1;margin:0;font-family:var(--display);font-size:calc(24px * var(--s-scale));color:var(--ink)}
+.s-size{height:48px;min-width:64px;padding:0 12px;border-radius:14px;border:2px solid var(--ink);font-family:var(--display);font-weight:800;font-size:calc(20px * var(--s-scale))}
+.s-main{padding:18px 16px 28px;display:flex;flex-direction:column;gap:18px}
+.s-main h2{font-family:var(--display);font-size:calc(26px * var(--s-scale));margin:0;line-height:1.2;letter-spacing:-.01em}
+.s-main p{margin:0;line-height:1.5}
+.s-big{display:flex;align-items:center;gap:16px;width:100%;min-height:calc(88px * var(--s-scale));padding:16px 18px;border-radius:20px;font-weight:800;font-size:calc(22px * var(--s-scale));text-align:left;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+.s-big .ms{font-size:calc(40px * var(--s-scale));max-width:none;flex:none}
+.s-big.primary{background:var(--forest);color:#fff;border-color:var(--forest)}
+.s-big.blue{background:#075985;color:#fff;border-color:#075985}
+.s-big:active{transform:scale(.98)}
+.s-card{border:2px solid var(--ink);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.s-card.info{background:#f0f9ff;border-color:#075985}
+.s-next{font-family:var(--display);font-weight:800;font-size:calc(34px * var(--s-scale));color:var(--forest);line-height:1.1}
+.s-link{font-weight:700;color:#075985;text-decoration:underline;text-underline-offset:4px;font-size:calc(18px * var(--s-scale));padding:8px 0;text-align:left}
+.s-nav{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--ink);background:#fff;padding-bottom:env(safe-area-inset-bottom,0px)}
+.s-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:84px;font-weight:800;font-size:calc(15px * var(--s-scale));color:var(--ink);border-right:1px solid #cbd5e1}
+.s-nav button:last-child{border-right:0}
+.s-nav .ms{font-size:34px}
+.s-nav button.on{background:var(--forest);color:#fff}
+.s-map{border:2px solid var(--ink);border-radius:20px;overflow:auto;background:#f1f5f9;max-height:52vh}
+.s-map svg{display:block;max-width:none}
+.s-zoom{display:flex;gap:10px}
+.s-zoom button{flex:1;height:60px;border-radius:16px;border:2px solid var(--ink);font-weight:800;font-size:calc(20px * var(--s-scale));display:flex;align-items:center;justify-content:center;gap:6px}
+.legend-s{display:flex;gap:10px 18px;flex-wrap:wrap;font-weight:700;font-size:calc(17px * var(--s-scale))}
+.legend-s span{display:flex;align-items:center;gap:8px}
+.legend-s i{width:30px;height:8px;border-radius:8px;display:inline-block}
+.s-dep{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:2px solid #e2e8f0}
+.s-dep:first-of-type{border-top:0}
+.s-dep b{font-family:var(--display);font-size:calc(26px * var(--s-scale));color:var(--forest);white-space:nowrap}
+.s-line{display:inline-block;padding:4px 10px;border-radius:10px;font-weight:800;color:#fff;margin-right:6px}
+/* Buy flow and tickets inside simple mode get bigger type */
+.simple .steps i{height:10px}
+.simple .opt{padding:18px;border:2px solid var(--ink);border-radius:20px;grid-template-columns:56px 1fr}
+.simple .opt .ic{width:56px;height:56px}
+.simple .opt b{font-size:calc(21px * var(--s-scale))}
+.simple .opt small{font-size:calc(16px * var(--s-scale));color:var(--ink-2)}
+.simple .opt .p{grid-column:2;font-size:calc(24px * var(--s-scale))}
+.simple .stepper button{width:76px;height:76px;border:2px solid var(--ink)}
+.simple .stepper output{font-size:56px}
+.simple .recap{border:2px solid var(--ink)}
+.simple .recap div{font-size:calc(19px * var(--s-scale));padding:14px 0}
+.simple .recap .tot{font-size:calc(24px * var(--s-scale))}
+.simple .btn{height:72px;font-size:calc(21px * var(--s-scale));border-radius:18px}
+.simple .btn.k{background:var(--forest);box-shadow:none}
+.simple .btn.glass{border:2px solid var(--ink);color:var(--ink)}
+.simple .demo-note{font-size:calc(16px * var(--s-scale))}
+.simple .ticket{border:2px solid var(--ink)}
+.simple .ticket .top{background:var(--forest)}
+.simple .ticket .top b{font-size:calc(21px * var(--s-scale))}
+.simple .ticket .mid{grid-template-columns:1fr;justify-items:center;text-align:center}
+.simple .ticket canvas{width:200px;height:200px}
+.simple .valid{font-size:calc(19px * var(--s-scale))}
+.simple .ok h2{font-size:calc(30px * var(--s-scale))}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <div id="root"></div>
+    <div id="sheet"></div>
+    <div id="toast"></div>
+  </div>
+  <aside class="side">
+    <p class="eyebrow">Démo interactive</p>
+    <h2>EcoQuest, la mobilité douce qui rapporte</h2>
+    <p>Tout est cliquable. Rien n'est réellement payé ni envoyé.</p>
+    <ul>
+      <li><b>Mode complet</b> : carte EcoCity, quêtes, boutique, classement, profil.</li>
+      <li><b>Mode simple</b> : gros caractères, le plan, l'achat de ticket et mes tickets. Pensé pour les personnes âgées.</li>
+    </ul>
+    <p>À essayer : lancez un trajet sur la carte, puis réclamez le coffre dans Quêtes.</p>
+    <button class="reset" data-act="reset">Recommencer la démo</button>
+  </aside>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const I = (n, cls = '') => `<span class="ms ${cls}" aria-hidden="true">${n}</span>`;
+const fmt = n => Math.round(n).toLocaleString('fr-FR');
+const eur = n => n.toFixed(2).replace('.', ',') + ' €';
+const hhmm = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+const COIN = '<span class="coin">€</span>';
+
+/* ---------------- Data ---------------- */
+/* Network transcribed from the official EcoCity plan (scan of 08/10/2026).
+   Coordinates are in "plan units" (the scanned plan, 1 unit ≈ 16 m); the map viewBox crops to the served area.
+   Landmark names follow the plan's legend; terminus names are placeholders until the real stop names are known. */
+const VB = { x: 260, y: 220, w: 1200, h: 730 };
+const STOPS = [
+  { id: 'centre',    name: 'Centre-ville',              x: 730,  y: 525, a: 'start',  ox: .8,  oy: 1.4 },
+  { id: 'gare',      name: 'Gare',                      x: 785,  y: 622, a: 'start',  ox: .9,  oy: -.3 },
+  { id: 'campusN',   name: 'Campus Nord',               x: 567,  y: 434, a: 'end',    ox: -.9, oy: -.5 },
+  { id: 'quai',      name: 'Quai du Campus',            x: 598,  y: 497, a: 'end',    ox: -.9, oy: 1.1 },
+  { id: 'carrefour', name: 'Carrefour Ouest',           x: 542,  y: 577, a: 'middle', ox: 0,   oy: 1.7 },
+  { id: 'loisirs',   name: 'Base de loisirs',           x: 1030, y: 694, a: 'start',  ox: .7,  oy: 1.5 },
+  { id: 'hopital',   name: 'Hôpital',                   x: 1122, y: 507, a: 'start',  ox: .9,  oy: .35 },
+  { id: 'ccE',       name: 'Centre commercial\nEst',    x: 1062, y: 408, a: 'start',  ox: .9,  oy: -.9 },
+  { id: 'campusS',   name: 'Campus Sud',                x: 690,  y: 692, a: 'end',    ox: -.9, oy: 1.4 },
+  { id: 'ccO',       name: 'Centre commercial\nOuest',  x: 362,  y: 694, a: 'start',  ox: -1.6, oy: 2 },
+  { id: 'stade',     name: 'Stade',                     x: 1056, y: 858, a: 'start',  ox: .9,  oy: .35 },
+  { id: 'nord',      name: 'Quartier Nord',             x: 678,  y: 245, a: 'start',  ox: .9,  oy: .35 },
+  { id: 'nordO',     name: 'Quartier Nord-Ouest',       x: 337,  y: 318, a: 'start',  ox: -.6, oy: -.9 },
+  { id: 'ouest',     name: 'Quartier Ouest',            x: 296,  y: 810, a: 'start',  ox: .9,  oy: .9 },
+  { id: 'sud',       name: 'Quartier Sud',              x: 583,  y: 885, a: 'end',    ox: -.9, oy: .35 },
+  { id: 'sudE',      name: 'Quartier Sud-Est',          x: 838,  y: 906, a: 'start',  ox: .9,  oy: .35 },
+];
+// Each line: drawn path (plan units) and the stops it serves, in order.
+const LINES = {
+  T1:  { name: 'Tram T1', kind: 'tram', color: '#d6283f', w: 2,
+         path: [567,434, 594,482, 544,576, 650,576, 662,596, 689,596, 730,525, 784,623, 807,623, 852,643, 890,646, 905,694, 1030,694],
+         stops: ['campusN', 'carrefour', 'centre', 'gare', 'loisirs'] },
+  B1:  { name: 'Bus B1 (BHNS)', kind: 'bus', color: '#ef4444', w: 0,
+         path: [583,885, 690,692, 730,525, 795,410, 1062,408, 1122,507],
+         stops: ['sud', 'campusS', 'centre', 'ccE', 'hopital'] },
+  B2:  { name: 'Bus B2', kind: 'bus', color: '#f59e0b', w: 0,
+         path: [678,245, 620,340, 730,525, 976,528, 798,833, 838,906],
+         stops: ['nord', 'centre', 'sudE'] },
+  B3:  { name: 'Bus B3', kind: 'bus', color: '#0ea5e9', w: 0,
+         path: [1058,859, 999,763, 813,762, 798,738, 718,741, 690,692, 499,694, 485,720, 384,717, 362,694, 296,810],
+         stops: ['stade', 'campusS', 'ccO', 'ouest'] },
+  B4:  { name: 'Bus B4', kind: 'bus', color: '#16a34a', w: 0,
+         path: [567,434, 556,461, 502,461, 485,436, 461,436, 449,455, 366,455, 325,529, 378,620, 355,667, 362,694, 417,694, 485,577, 542,577],
+         stops: ['campusN', 'ccO', 'carrefour'] },
+  B5:  { name: 'Bus B5', kind: 'bus', color: '#3730a3', w: 0,
+         path: [337,318, 499,318, 567,434],
+         stops: ['nordO', 'campusN'] },
+  B6:  { name: 'Bus B6', kind: 'bus', color: '#c084fc', w: 0,
+         path: [567,434, 709,437, 745,363, 774,363, 822,269, 985,269, 1062,408],
+         stops: ['campusN', 'ccE'] },
+  NF1: { name: 'Navette fluviale NF1', kind: 'navette', color: '#1f2937', w: 0, dash: true,
+         path: [598,497, 640,515, 680,575, 720,600, 785,622, 819,691, 878,714, 1002,717, 1030,694],
+         stops: ['quai', 'gare', 'loisirs'] },
+};
+for (const L of Object.values(LINES)) L.dirs = [L.stops[L.stops.length - 1], L.stops[0]];
+for (const s of STOPS) s.lines = Object.keys(LINES).filter(k => LINES[k].stops.includes(s.id));
+const RIVER = [[120,410, 230,470, 290,490, 340,505, 400,490, 470,480, 540,490, 598,500, 640,520, 680,560, 720,590, 760,630, 800,662, 850,700, 950,724, 1100,715, 1180,725, 1240,790, 1460,790],
+               [725,598, 720,680, 740,760, 705,860, 700,1000]];
+const BRIDGES = [[340,505, 60], [585,500, 70], [880,700, 55], [740,742, -10], [1180,722, 80]];
+const BIKES = [[405,387], [690,365], [868,340], [920,482], [405,530], [555,648], [1043,598], [567,765], [920,905], [798,833],
+               [567,434], [542,577], [730,525], [690,692], [362,694], [1062,408], [1030,694], [1056,858]];
+const POIS = [ // landmark hex clusters from the plan legend
+  { x: 730, y: 525, r: 34, c: '#155e63', label: 'Centre-ville' },
+  { x: 362, y: 700, r: 30, c: '#1a8fa0' }, { x: 1048, y: 400, r: 28, c: '#1a8fa0' },
+  { x: 568, y: 420, r: 22, c: '#a855f7' }, { x: 705, y: 690, r: 20, c: '#a855f7' },
+  { x: 1040, y: 690, r: 22, c: '#22c55e' }, { x: 1048, y: 857, r: 20, c: '#f59e0b' },
+  { x: 785, y: 622, r: 16, c: '#111827' }, { x: 1135, y: 505, r: 22, c: '#e11d48' },
+];
+const URBAN = '430,520 470,420 560,350 680,320 800,300 930,330 1040,380 1100,470 1100,600 1080,700 1000,790 900,900 760,910 640,830 540,780 450,690';
+const CORE = '600,470 700,430 820,470 860,560 820,650 720,680 640,620 590,540';
+const stopById = id => STOPS.find(s => s.id === id);
+const lineName = id => stopById(id).name.replace('\n', ' ');
+// Deterministic "live" waiting times so the demo is stable.
+function waits(stopId, line) {
+  const seed = (stopId.charCodeAt(0) + stopId.length * 7 + line.charCodeAt(0)) % 7;
+  return [[2 + seed, 9 + seed], [4 + (seed + 3) % 6, 14 + seed]];
+}
+
+const TICKETS = [
+  { id: 'single', name: 'Ticket 1 voyage',     desc: 'Valable 1 heure, correspondances comprises', price: 1.70,  coins: 70,  icon: 'confirmation_number', uses: 1 },
+  { id: 'day',    name: 'Pass 1 jour',         desc: 'Voyages illimités jusqu’à minuit',          price: 4.50,  coins: 180, icon: 'today',               uses: null },
+  { id: 'ten',    name: 'Carnet 10 voyages',   desc: '10 voyages, à utiliser quand vous voulez',   price: 15.50, coins: null, icon: 'style',              uses: 10 },
+  { id: 'senior', name: 'Pass Senior 65+ (1 mois)', desc: 'Voyages illimités pendant 30 jours',    price: 20.00, coins: null, icon: 'elderly',            uses: null },
+];
+
+const CITY_QUESTS = {
+  tram: { title: 'Cap Base de loisirs', time: 12, coins: 45, xp: 120, co2: 380, line: 'Tram T1',
+          steps: [['location_on', 'Station Centre-ville', 'Tram T1 · passage dans 2 min', 'var(--mint)', 'var(--forest)'],
+                  ['train', 'Correspondance Gare', 'Navette fluviale NF1 à quai', 'var(--lilac)', 'var(--violet)'],
+                  ['emoji_events', 'Arrivée : Base de loisirs', 'Débloque le badge Explorateur Solaire', 'var(--cream)', 'var(--gold-deep)']] },
+  velo: { title: 'Balade des quais', time: 18, coins: 60, xp: 150, co2: 520, line: 'Station vélo',
+          steps: [['pedal_bike', 'Station vélo Centre-ville', '6 vélos disponibles', 'var(--mint)', 'var(--forest)'],
+                  ['water', 'Le long de la rivière, 3 ponts', 'Zone x2 XP active', 'var(--sky)', 'var(--cyan-deep)'],
+                  ['emoji_events', 'Arrivée : Stade', 'Débloque le badge Rouleur des Rives', 'var(--cream)', 'var(--gold-deep)']] },
+  bus:  { title: 'Express Hôpital', time: 15, coins: 40, xp: 100, co2: 450, line: 'Bus B1 (BHNS)',
+          steps: [['location_on', 'Arrêt Centre-ville', 'Bus B1 · passage dans 5 min', 'var(--mint)', 'var(--forest)'],
+                  ['directions_bus', 'Centre commercial Est', 'Correspondance Bus B6', 'var(--sky)', 'var(--cyan-deep)'],
+                  ['emoji_events', 'Arrivée : Hôpital', 'Bonus de quartier +10 %', 'var(--cream)', 'var(--gold-deep)']] },
+  navette: { title: 'Croisière fluviale', time: 20, coins: 55, xp: 140, co2: 300, line: 'Navette NF1',
+          steps: [['directions_boat', 'Quai du Campus', 'Navette NF1 · départ dans 6 min', 'var(--sky)', 'var(--cyan-deep)'],
+                  ['train', 'Escale Gare', 'Sous 2 ponts du centre-ville', 'var(--lilac)', 'var(--violet)'],
+                  ['emoji_events', 'Arrivée : Base de loisirs', 'Débloque le badge Capitaine Fluvial', 'var(--cream)', 'var(--gold-deep)']] },
+};
+
+const OFFERS = [
+  { id: 'o-ticket', cat: 'transport', title: 'Ticket 1 voyage', place: 'Réseau EcoCity', cost: 70, was: '1,70 €', icon: 'confirmation_number', bg: 'linear-gradient(135deg,#0369a1,#0ea5e9)', badge: ['c', 'Transport'], dist: null, desc: 'Ajouté directement dans Mes tickets', ticket: 'single' },
+  { id: 'o-day', cat: 'transport', title: 'Pass 1 jour', place: 'Réseau EcoCity', cost: 180, was: '4,50 €', icon: 'today', bg: 'linear-gradient(135deg,#075985,#10b981)', badge: ['c', 'Transport'], dist: null, desc: 'Voyages illimités jusqu’à minuit', ticket: 'day' },
+  { id: 'o-latte', cat: 'local', title: 'Latte avoine ou thé bio offert', place: 'Café Botanica · Pôle Campus', cost: 150, was: '4,80 €', icon: 'local_cafe', bg: 'linear-gradient(135deg,#78350f,#b45309)', badge: ['g', 'Populaire'], dist: '300 m', desc: '1 boisson chaude au choix, sur place ou à emporter' },
+  { id: 'o-velo', cat: 'local', title: 'Check-up sécurité vélo', place: 'Cyclofix Atelier · Hub Gare', cost: 400, was: '25,00 €', icon: 'pedal_bike', bg: 'linear-gradient(135deg,#0f766e,#14b8a6)', badge: ['c', 'Mobilité douce'], dist: '850 m', desc: 'Freins, transmission, gonflage et 18 points de contrôle' },
+  { id: 'o-panier', cat: 'local', title: 'Bon d’achat 10 € panier maraîcher', place: 'La Ruche Gourmande · Rive Sud', cost: 500, was: '10,00 €', icon: 'nutrition', bg: 'linear-gradient(135deg,#3f6212,#65a30d)', badge: ['g', 'Circuit court'], dist: '1,2 km', desc: 'Fruits et légumes récoltés à moins de 50 km' },
+  { id: 'o-cine', cat: 'local', title: 'Place ciné Éco-Docu', place: 'Cinéma Le Dôme · Ligne B1', cost: 320, was: '11,50 €', icon: 'theaters', bg: 'linear-gradient(135deg,#312e81,#6366f1)', badge: ['o', 'Culture verte'], dist: '600 m', desc: '1 place pour les séances nature et le festival transition urbaine' },
+  { id: 'o-arbre', cat: 'local', title: 'Plante ton arbre', place: 'Forêt Vivante · Action planétaire', cost: 250, was: '−25 kg CO₂/an', icon: 'park', bg: 'linear-gradient(135deg,#065f46,#10b981)', badge: ['g', 'Impact réel'], dist: null, desc: 'Arbre géolocalisé avec ton prénom + badge Semeur de Graine' },
+];
+const SKINS = [
+  { id: 's-cap', name: 'Casquette Solaire', note: 'Visière qui réagit au soleil · +5 % XP', rar: ['c', 'Rare'], cost: 120, icon: 'styler', bg: 'var(--sky)', fg: 'var(--cyan-deep)' },
+  { id: 's-bag', name: 'Sac Fleur Lumineux', note: 'S’illumine pendant les trajets à vélo', rar: ['g', 'Épique'], cost: 200, icon: 'local_florist', bg: 'var(--mint)', fg: 'var(--forest)' },
+  { id: 's-veste', name: 'Veste Aérodynamique', note: 'Sillage de vitesse sur la carte', rar: ['o', 'Légendaire'], cost: 500, icon: 'bolt', bg: 'var(--cream)', fg: 'var(--gold-deep)' },
+];
+
+/* ---------------- Shop illustrations ----------------
+   Hand-drawn inline SVG so the page needs no external images. Offers use a 360×150 scene
+   (main subject top/right, the title sits bottom-left over a scrim); avatar items use a 100×100 tile. */
+const lg = (id, a, b, vertical = true) => `<linearGradient id="${id}" x1="0" y1="0" x2="${vertical ? 0 : 1}" y2="${vertical ? 1 : 0}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+const scene = (defs, body) => `<svg class="artsvg" viewBox="0 0 360 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
+const tile = (defs, body) => `<svg class="tilesvg" viewBox="0 0 100 100" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
+const tramSVG = (x, y, s, body, stripe) => `<g transform="translate(${x} ${y}) scale(${s})">
+  <path d="M40 0 L62 -26 L84 0" stroke="#334155" stroke-width="2.5" fill="none"/>
+  <rect x="0" y="0" width="190" height="66" rx="16" fill="${body}"/>
+  <rect x="0" y="42" width="190" height="9" fill="${stripe}"/>
+  ${[14, 54, 94, 134].map(wx => `<rect x="${wx}" y="10" width="30" height="24" rx="5" fill="#e0f2fe"/>`).join('')}
+  <rect x="172" y="10" width="14" height="24" rx="4" fill="#bae6fd"/>
+  <circle cx="183" cy="52" r="4" fill="#fde047"/>
+  <circle cx="34" cy="68" r="8" fill="#334155"/><circle cx="156" cy="68" r="8" fill="#334155"/></g>`;
+
+const ART = {
+  'o-ticket': scene(lg('tk1', '#7dd3fc', '#e0f2fe'), `
+    <rect width="360" height="150" fill="url(#tk1)"/>
+    <circle cx="300" cy="26" r="15" fill="#fef9c3"/>
+    <path d="M0 34 H360" stroke="#334155" stroke-width="1.5"/>
+    <rect y="120" width="360" height="30" fill="#cbd5e1"/><path d="M0 128 H360 M0 140 H360" stroke="#64748b" stroke-width="2"/>
+    ${tramSVG(170, 54, 1, '#d6283f', '#9f1239')}
+    <g transform="rotate(-9 95 50)"><rect x="40" y="18" width="120" height="58" rx="9" fill="#fff" stroke="#f59e0b" stroke-width="2.5"/>
+      <path d="M128 18 V76" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="52" y="44" font-family="Sora,sans-serif" font-size="14" font-weight="800" fill="#0f172a">TICKET</text>
+      <text x="52" y="62" font-family="Plus Jakarta Sans,sans-serif" font-size="11" fill="#475569">1 voyage · 1 h</text>
+      <rect x="135" y="36" width="18" height="18" rx="2" fill="#0f172a"/><rect x="139" y="40" width="5" height="5" fill="#fff"/></g>`),
+
+  'o-day': scene(lg('dy1', '#fb923c', '#fef3c7'), `
+    <rect width="360" height="150" fill="url(#dy1)"/>
+    <circle cx="120" cy="58" r="40" fill="#fde047"/><circle cx="120" cy="58" r="54" fill="#fde047" opacity=".25"/>
+    <path d="M0 112 Q90 84 180 104 T360 96 V150 H0Z" fill="#4ade80"/><path d="M0 126 Q120 104 240 122 T360 116 V150 H0Z" fill="#16a34a"/>
+    ${tramSVG(16, 82, .62, '#0f766e', '#115e59')}
+    <g transform="rotate(7 290 60)"><rect x="244" y="16" width="92" height="86" rx="10" fill="#fff"/>
+      <rect x="244" y="16" width="92" height="22" rx="10" fill="#ef4444"/><rect x="244" y="30" width="92" height="8" fill="#ef4444"/>
+      <circle cx="266" cy="16" r="4" fill="#334155"/><circle cx="314" cy="16" r="4" fill="#334155"/>
+      <text x="290" y="80" text-anchor="middle" font-family="Sora,sans-serif" font-size="30" font-weight="800" fill="#0f172a">24h</text></g>`),
+
+  'o-latte': scene(lg('lt1', '#fde68a', '#fffbeb'), `
+    <rect width="360" height="150" fill="url(#lt1)"/>
+    <rect x="18" y="14" width="120" height="74" rx="8" fill="#bae6fd" stroke="#fff" stroke-width="5"/><path d="M78 14 V88 M18 51 H138" stroke="#fff" stroke-width="4"/>
+    <path d="M196 0 V20" stroke="#78350f" stroke-width="2"/><path d="M182 20 H210 L205 36 H187Z" fill="#b45309"/>
+    <path d="M190 34 Q176 52 172 64 M196 36 Q196 56 194 70 M202 34 Q214 50 220 60" stroke="#16a34a" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <rect y="114" width="360" height="36" fill="#92400e"/><rect y="110" width="360" height="7" fill="#b45309"/>
+    <ellipse cx="282" cy="112" rx="50" ry="8" fill="#fff"/>
+    <path d="M246 66 H318 V92 Q318 110 282 110 Q246 110 246 92Z" fill="#fff"/>
+    <path d="M318 74 Q338 74 336 88 Q334 100 316 98" stroke="#fff" stroke-width="6" fill="none"/>
+    <ellipse cx="282" cy="66" rx="36" ry="8" fill="#a16207"/>
+    <path d="M282 72 C270 64 274 58 282 63 C290 58 294 64 282 72Z" fill="#fef3c7"/>
+    <path d="M270 54 Q262 42 272 32 Q282 22 274 10 M292 54 Q284 42 294 32 Q302 22 296 12" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".85"/>
+    <circle cx="214" cy="104" r="9" fill="#65a30d"/><circle cx="214" cy="104" r="9" fill="none" stroke="#3f6212" stroke-width="2" stroke-dasharray="2 3"/>`),
+
+  'o-velo': scene(lg('vl1', '#99f6e4', '#f0fdfa'), `
+    <rect width="360" height="150" fill="url(#vl1)"/>
+    <rect x="14" y="12" width="130" height="76" rx="10" fill="#ccfbf1" stroke="#5eead4" stroke-width="2"/>
+    ${[0, 1, 2, 3, 4, 5].map(i => [0, 1, 2].map(j => `<circle cx="${28 + i * 21}" cy="${26 + j * 24}" r="2" fill="#5eead4"/>`).join('')).join('')}
+    <path d="M38 30 L70 62 M32 26 a8 8 0 1 0 10 0 M66 58 a8 8 0 1 0 10 8" stroke="#475569" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <path d="M104 24 V70 M96 24 H112" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+    <rect y="128" width="360" height="22" fill="#cbd5e1"/>
+    <rect x="248" y="98" width="10" height="32" fill="#475569"/><rect x="232" y="126" width="42" height="6" rx="3" fill="#334155"/>
+    <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <circle cx="206" cy="96" r="30" stroke="#0f172a" stroke-width="5"/><circle cx="306" cy="96" r="30" stroke="#0f172a" stroke-width="5"/>
+      <path d="M206 66 V126 M176 96 H236 M306 66 V126 M276 96 H336" stroke="#94a3b8" stroke-width="1.5"/>
+      <path d="M206 96 L240 56 L292 56 L306 96 M240 56 L254 96 L206 96 M254 96 L292 56" stroke="#0d9488" stroke-width="7"/>
+      <path d="M230 46 H252 M290 44 L298 40" stroke="#0f172a" stroke-width="6"/><path d="M240 56 L236 46 M292 56 L294 44" stroke="#0d9488" stroke-width="5"/>
+    </g>`),
+
+  'o-panier': scene(lg('pn1', '#fef9c3', '#fde68a'), `
+    <rect width="360" height="150" fill="url(#pn1)"/>
+    <rect y="116" width="360" height="34" fill="#a16207"/><path d="M0 128 H360 M0 140 H360" stroke="#854d0e" stroke-width="2"/>
+    <rect x="112" y="68" width="38" height="48" rx="8" fill="#f59e0b" opacity=".9"/><rect x="110" y="60" width="42" height="12" rx="3" fill="#78350f"/>
+    <text x="131" y="98" text-anchor="middle" font-family="Sora,sans-serif" font-size="10" font-weight="800" fill="#78350f">MIEL</text>
+    <path d="M190 84 Q255 12 320 84" stroke="#92400e" stroke-width="7" fill="none"/>
+    <circle cx="214" cy="78" r="16" fill="#ef4444"/><circle cx="244" cy="70" r="17" fill="#dc2626"/><path d="M240 54 l4 4 l4 -4" stroke="#15803d" stroke-width="3" fill="none"/>
+    <circle cx="278" cy="66" r="17" fill="#15803d"/><circle cx="292" cy="76" r="15" fill="#22c55e"/><circle cx="268" cy="78" r="12" fill="#16a34a"/>
+    <path d="M300 82 L338 46 L330 84Z" fill="#f97316"/><path d="M336 48 l10 -14 M336 48 l14 -6 M336 48 l4 -16" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M184 82 H326 L312 126 H198Z" fill="#b45309"/>
+    <path d="M190 96 H322 M195 110 H317 M226 82 L230 126 M256 82 L256 126 M286 82 L282 126" stroke="#92400e" stroke-width="3"/>`),
+
+  'o-cine': scene(lg('cn1', '#1e1b4b', '#312e81'), `
+    <rect width="360" height="150" fill="url(#cn1)"/>
+    <polygon points="352,0 300,0 98,16 290,16" fill="#fef3c7" opacity=".14"/>
+    <rect x="90" y="14" width="210" height="84" rx="4" fill="#bae6fd"/>
+    <circle cx="260" cy="36" r="10" fill="#fde047"/>
+    <path d="M90 82 Q150 50 210 72 T300 64 V98 H90Z" fill="#34d399"/>
+    <rect x="152" y="54" width="7" height="24" fill="#78350f"/><circle cx="156" cy="48" r="17" fill="#059669"/>
+    ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<rect x="${18 + i * 36}" y="110" width="30" height="20" rx="7" fill="#4338ca"/><rect x="${4 + i * 36}" y="130" width="32" height="20" rx="7" fill="#3730a3"/>`).join('')}
+    <path d="M304 86 L344 86 L338 140 L310 140Z" fill="#fff"/><path d="M314 86 L316 140 M324 86 V140 M334 86 L332 140" stroke="#ef4444" stroke-width="5"/>
+    ${[[308, 82], [318, 78], [330, 80], [340, 84], [324, 72], [312, 74]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="#fef9c3"/>`).join('')}`),
+
+  'o-arbre': scene(lg('ab1', '#bbf7d0', '#f0fdf4'), `
+    <rect width="360" height="150" fill="url(#ab1)"/>
+    <circle cx="310" cy="34" r="20" fill="#fde047"/>
+    <path d="M0 110 Q100 80 200 100 T360 92 V150 H0Z" fill="#86efac"/>
+    <ellipse cx="200" cy="114" rx="48" ry="12" fill="#92400e"/>
+    <path d="M200 112 C200 92 202 72 199 46" stroke="#166534" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="184" cy="66" rx="16" ry="8" transform="rotate(-30 184 66)" fill="#22c55e"/><ellipse cx="216" cy="58" rx="18" ry="8" transform="rotate(28 216 58)" fill="#16a34a"/>
+    <ellipse cx="192" cy="40" rx="13" ry="7" transform="rotate(-40 192 40)" fill="#4ade80"/><ellipse cx="208" cy="36" rx="12" ry="6" transform="rotate(35 208 36)" fill="#22c55e"/>
+    <rect x="128" y="74" width="6" height="40" fill="#78350f"/><rect x="104" y="60" width="54" height="24" rx="4" fill="#fef3c7" stroke="#78350f" stroke-width="2"/>
+    <text x="131" y="77" text-anchor="middle" font-family="Sora,sans-serif" font-size="12" font-weight="800" fill="#78350f">Alex</text>
+    <g transform="translate(258 70)"><rect x="0" y="10" width="44" height="32" rx="8" fill="#0ea5e9"/><path d="M44 18 L70 2" stroke="#0ea5e9" stroke-width="7" stroke-linecap="round"/>
+      <path d="M8 10 Q22 -8 36 10" stroke="#0284c7" stroke-width="5" fill="none"/>
+      <circle cx="74" cy="12" r="2.5" fill="#38bdf8"/><circle cx="78" cy="22" r="2.5" fill="#38bdf8"/><circle cx="70" cy="28" r="2.5" fill="#38bdf8"/></g>`),
+
+  's-cap': tile('', `<circle cx="50" cy="50" r="50" fill="#e0f2fe"/>
+    <circle cx="78" cy="22" r="8" fill="#fde047"/><path d="M78 6 V2 M92 22 H96 M88 12 l3 -3" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M18 64 Q18 30 50 30 Q80 30 80 64Z" fill="#0ea5e9"/><path d="M50 30 V64" stroke="#0284c7" stroke-width="2"/>
+    <path d="M58 62 Q90 58 96 72 Q74 78 46 68Z" fill="#0369a1"/><circle cx="50" cy="30" r="4" fill="#0369a1"/>
+    <path d="M28 48 Q34 40 42 38" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".7"/>`),
+  's-bag': tile('', `<circle cx="50" cy="50" r="50" fill="#d1fae5"/>
+    <circle cx="50" cy="60" r="24" fill="#fde047" opacity=".35"/>
+    <path d="M36 28 Q36 14 50 14 Q64 14 64 28" stroke="#047857" stroke-width="5" fill="none"/>
+    <rect x="26" y="26" width="48" height="60" rx="16" fill="#10b981"/><rect x="33" y="54" width="34" height="26" rx="8" fill="#059669"/>
+    ${[0, 72, 144, 216, 288].map(a => `<circle cx="${50 + 7 * Math.cos(a * Math.PI / 180)}" cy="${66 + 7 * Math.sin(a * Math.PI / 180)}" r="5" fill="#f472b6"/>`).join('')}
+    <circle cx="50" cy="66" r="4" fill="#fde047"/>`),
+  's-veste': tile('', `<circle cx="50" cy="50" r="50" fill="#fef3c7"/>
+    <path d="M6 44 H20 M4 56 H18 M8 68 H20" stroke="#d97706" stroke-width="3" stroke-linecap="round"/>
+    <path d="M34 22 L44 18 Q50 26 56 18 L66 22 L84 52 L74 58 L70 50 V84 H30 V50 L26 58 L16 52Z" fill="#f59e0b"/>
+    <path d="M50 26 V84" stroke="#92400e" stroke-width="2.5" stroke-dasharray="3 2"/>
+    <path d="M44 18 L50 30 L56 18" stroke="#b45309" stroke-width="3" fill="none"/>
+    <path d="M36 60 L46 52 L42 62 L52 56" stroke="#fff" stroke-width="2.5" stroke-linejoin="round" fill="none"/>`),
+};
+
+/* ---------------- State ---------------- */
+function freshState() {
+  return {
+    mode: null, tab: 'accueil', coins: 1420, xp: 2450, trips: 2, transport: 'tram',
+    questTab: 'daily', rankTab: 'quartiers', shopCat: 'all',
+    zenClaimed: false, legendClaimed: false, bravo: false, veloKm: 1.8, veloClaimed: false, invited: false,
+    tickets: [{ uid: 'EQ-48213', type: 'single', name: 'Ticket 1 voyage', left: 1, validatedAt: null }],
+    coupons: [], owned: {}, equipped: null,
+    sTab: 'home', big: false, zoom: 1.5, fzoom: 1.6, stop: null, fullStop: null,
+    buy: { step: 1, type: null, qty: 1, pay: 'card' },
+    sheet: null, sheetData: null, trip: null,
+  };
+}
+let S = freshState();
+let tripTimer = null;
+
+/* ---------------- Helpers ---------------- */
+function toast(text, icon = 'check_circle') {
+  $('#toast').innerHTML = `<div class="toast">${I(icon, 'fill')}${text}</div>`;
+}
+function fly(text) {
+  const el = document.createElement('div');
+  el.className = 'fly'; el.textContent = text;
+  $('#phone').appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+function addCoins(n, label) {
+  S.coins += n;
+  if (n > 0) fly('+' + n);
+  if (label) toast(label, 'paid');
+}
+const level = () => (S.xp >= 3000 ? 13 : 12);
+const uid = () => 'EQ-' + Math.floor(10000 + Math.random() * 89999);
+
+function drawQR(canvas) {
+  const N = 25, ctx = canvas.getContext('2d');
+  canvas.width = N; canvas.height = N;
+  let seed = [...canvas.dataset.qr].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, N, N);
+  ctx.fillStyle = '#0f172a';
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (rnd() > .5) ctx.fillRect(x, y, 1, 1);
+  const finder = (fx, fy) => {
+    ctx.fillStyle = '#fff'; ctx.fillRect(fx - 1, fy - 1, 9, 9);
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(fx, fy, 7, 7);
+    ctx.fillStyle = '#fff'; ctx.fillRect(fx + 1, fy + 1, 5, 5);
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(fx + 2, fy + 2, 3, 3);
+  };
+  finder(0, 0); finder(N - 7, 0); finder(0, N - 7);
+}
+
+/* ---------------- Map (shared) ---------------- */
+// Line widths, radii and font sizes are given in screen pixels and converted with `u` (plan units per pixel),
+// so the map stays legible at every zoom level.
+const ZOOMS_FULL = [1, 1.6, 2.4], ZOOMS_SIMPLE = [1, 1.5, 2, 2.5];
+function mapSVG(simple) {
+  const wpx = Math.round(356 * (simple ? S.zoom : S.fzoom)), hpx = Math.round(wpx * VB.h / VB.w);
+  const u = VB.w / wpx;
+  const active = l => simple || (S.transport === 'tram' && l === 'T1') || (S.transport === 'bus' && l[0] === 'B') || (S.transport === 'navette' && l === 'NF1');
+  const bikeOn = !simple && S.transport === 'velo';
+  const sel = simple ? S.stop : S.fullStop;
+  const font = 'Plus Jakarta Sans,sans-serif';
+  const hex = (x, y, r) => [0, 1, 2, 3, 4, 5].map(i => { const a = Math.PI / 3 * i; return (x + r * Math.cos(a)).toFixed(1) + ',' + (y + r * Math.sin(a)).toFixed(1); }).join(' ');
+  const hr = 11; // hex tile radius, same scale as the scanned plan
+  let g = `<svg viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}" width="${wpx}" height="${hpx}" role="img" aria-label="Plan du réseau EcoCity">
+    <defs><pattern id="hex${simple ? 's' : 'f'}" width="${hr * 3}" height="${(hr * Math.sqrt(3)).toFixed(2)}" patternUnits="userSpaceOnUse">
+      <polygon points="${hex(hr, hr * Math.sqrt(3) / 2, hr - .6)}" fill="none" stroke="#fff" stroke-width="1.4"/>
+      <polygon points="${hex(hr * 2.5, 0, hr - .6)}" fill="none" stroke="#fff" stroke-width="1.4"/>
+      <polygon points="${hex(hr * 2.5, hr * Math.sqrt(3), hr - .6)}" fill="none" stroke="#fff" stroke-width="1.4"/>
+    </pattern></defs>
+    <rect x="${VB.x}" y="${VB.y}" width="${VB.w}" height="${VB.h}" fill="${simple ? '#ffffff' : '#fbfcfe'}"/>
+    <ellipse cx="760" cy="600" rx="470" ry="350" fill="#fef9c3" opacity="${simple ? .5 : .75}"/>
+    <polygon points="${URBAN}" fill="#d9dde3" stroke-linejoin="round"/>
+    <polygon points="${CORE}" fill="#b9bfc8"/>
+    <rect x="${VB.x}" y="${VB.y}" width="${VB.w}" height="${VB.h}" fill="url(#hex${simple ? 's' : 'f'})" opacity=".55"/>`;
+  for (const r of RIVER) {
+    const pts = []; for (let i = 0; i < r.length; i += 2) pts.push(r[i] + ',' + r[i + 1]);
+    g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#3aa6dd" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  for (const [x, y, a] of BRIDGES) {
+    g += `<g transform="translate(${x} ${y}) rotate(${a})" stroke="#1f2937" stroke-width="${2.2 * u}" stroke-linecap="round"><path d="M-22 -6 H22 M-22 6 H22"/></g>`;
+  }
+  for (const p of POIS) g += `<polygon points="${hex(p.x, p.y, p.r)}" fill="${p.c}" fill-opacity=".12" stroke="${p.c}" stroke-width="${2 * u}"/>`;
+  // Lines: inactive ones first so the selected mode is drawn on top.
+  const order = Object.keys(LINES).sort((a, b) => active(a) - active(b));
+  for (const k of order) {
+    const L = LINES[k], on = active(k);
+    const pts = []; for (let i = 0; i < L.path.length; i += 2) pts.push(L.path[i] + ',' + L.path[i + 1]);
+    const w = ((simple ? 5 : on ? 4 : 2.5) + L.w) * u;
+    if (on) g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#fff" stroke-width="${w + 3 * u}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    g += `<polyline points="${pts.join(' ')}" fill="none" stroke="${L.color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${L.dash ? `stroke-dasharray="${8 * u} ${5 * u}"` : ''} opacity="${on ? 1 : .22}"/>`;
+  }
+  if (!simple) for (const [x, y] of BIKES) {
+    const s = (bikeOn ? 7 : 4) * u;
+    g += bikeOn
+      ? `<g pointer-events="none"><circle cx="${x}" cy="${y}" r="${10 * u}" fill="#f59e0b" stroke="#fff" stroke-width="${2 * u}"/><path d="M${x - s * .6} ${y - s * .6} L${x + s * .6} ${y + s * .6} M${x + s * .6} ${y - s * .6} L${x - s * .6} ${y + s * .6}" stroke="#fff" stroke-width="${2.4 * u}" stroke-linecap="round"/></g>`
+      : `<path d="M${x - s} ${y - s} L${x + s} ${y + s} M${x + s} ${y - s} L${x - s} ${y + s}" stroke="#334155" stroke-width="${1.6 * u}" stroke-linecap="round" opacity=".45" pointer-events="none"/>`;
+  }
+  const fs = (simple ? 14 : 10.5) * u;
+  for (const s of STOPS) {
+    const isSel = sel === s.id;
+    const onLine = s.lines.some(active) || (bikeOn && BIKES.some(([x, y]) => x === s.x && y === s.y));
+    const hub = s.lines.length > 1;
+    const r = (simple ? (hub ? 9 : 7) : (hub ? 6.5 : 5)) * u;
+    const showLabel = simple || onLine || isSel;
+    const lines = s.name.split('\n');
+    const lx = s.x + s.ox * fs, ly = s.y + s.oy * fs;
+    g += `<g class="stop" data-act="${simple ? 'sstop' : 'fstop'}" data-arg="${s.id}" tabindex="0" role="button" aria-label="${s.name.replace('\n', ' ')}">
+      <circle cx="${s.x}" cy="${s.y}" r="${r + 14 * u}" fill="transparent"/>
+      ${isSel ? `<circle cx="${s.x}" cy="${s.y}" r="${r + 7 * u}" fill="${simple ? '#fde047' : 'rgba(14,165,233,.35)'}"/>` : ''}
+      <circle class="dot" cx="${s.x}" cy="${s.y}" r="${r}" fill="#fff" stroke="${onLine || simple ? '#0f172a' : '#94a3b8'}" stroke-width="${(simple ? 3 : 2.2) * u}"/>
+      ${showLabel ? `<text x="${lx}" y="${ly}" text-anchor="${s.a}" font-family="${font}" font-size="${fs}" font-weight="${simple || isSel ? 800 : 700}" fill="#0f172a" stroke="#fff" stroke-width="${(simple ? 4 : 3) * u}" paint-order="stroke" stroke-linejoin="round">${lines.map((t, i) => `<tspan x="${lx}" dy="${i ? '1.1em' : 0}">${t}</tspan>`).join('')}</text>` : ''}
+    </g>`;
+  }
+  // "You are here", next to the Centre-ville stop
+  const mx = 700, my = 470;
+  g += `<g pointer-events="none">
+    <circle class="pulse" cx="${mx}" cy="${my}" r="${8 * u}" fill="${simple ? '#dc2626' : '#10b981'}"/>
+    <circle cx="${mx}" cy="${my}" r="${(simple ? 9 : 7) * u}" fill="${simple ? '#dc2626' : '#10b981'}" stroke="#fff" stroke-width="${3 * u}"/>
+    <text x="${mx}" y="${my - 14 * u}" text-anchor="middle" font-family="${font}" font-size="${fs * .95}" font-weight="800" fill="${simple ? '#991b1b' : '#065f46'}" stroke="#fff" stroke-width="${4 * u}" paint-order="stroke">Vous êtes ici</text>
+  </g>`;
+  if (!simple) {
+    const bx = 1140, by = 620;
+    g += `<g pointer-events="none"><rect x="${bx}" y="${by - 11 * u}" width="${70 * u}" height="${22 * u}" rx="${11 * u}" fill="#f59e0b"/><text x="${bx + 35 * u}" y="${by + 4 * u}" text-anchor="middle" font-family="Sora,sans-serif" font-size="${11 * u}" font-weight="800" fill="#fff">+20 Coins</text></g>
+      <g pointer-events="none"><rect x="${600}" y="${372 - 11 * u}" width="${84 * u}" height="${20 * u}" rx="${10 * u}" fill="#0ea5e9"/><text x="${600 + 42 * u}" y="${372 + 3 * u}" text-anchor="middle" font-family="${font}" font-size="${10 * u}" font-weight="800" fill="#fff">x2 XP Campus</text></g>`;
+  }
+  // Scale bar: 1 km ≈ 62 plan units (the scanned plan shows 400 m ≈ 25 units)
+  const sx = VB.x + 16 * u, sy = VB.y + VB.h - 14 * u;
+  g += `<g pointer-events="none"><path d="M${sx} ${sy} H${sx + 62}" stroke="#0f172a" stroke-width="${2.5 * u}"/><text x="${sx + 62 + 6 * u}" y="${sy + 4 * u}" font-family="${font}" font-size="${10 * u}" font-weight="700" fill="#0f172a">1 km</text></g>`;
+  return g + '</svg>';
+}
+// Ratio (0..1) of a plan point inside the map, used to centre the scroll view on it.
+const mapRatio = (x, y) => ({ cx: (x - VB.x) / VB.w, cy: (y - VB.y) / VB.h });
+let mapView = { f: mapRatio(730, 525), s: mapRatio(730, 525) };
+
+function lineBadge(k, simple) {
+  const L = LINES[k];
+  return simple
+    ? `<span class="s-line" style="background:${L.color}">${L.name}</span>`
+    : `<span class="line" style="background:${L.color}1f;color:${k === 'NF1' ? '#1f2937' : L.color};border:1px solid ${L.color}55">${k}</span>`;
+}
+function departuresHTML(stopId, simple) {
+  const s = stopById(stopId);
+  return s.lines.map(l => {
+    const L = LINES[l], w = waits(stopId, l);
+    return L.dirs.filter(d => d !== s.id).map((d, i) => simple
+      ? `<div class="s-dep"><span>${lineBadge(l, true)}<br>vers ${lineName(d)}</span><b>${w[i][0]} min</b></div>`
+      : `<div class="dep">${lineBadge(l)}<span class="t-md">vers <b>${lineName(d)}</b></span><span class="mins">${w[i][0]} <small>min</small></span></div>`
+    ).join('');
+  }).join('');
+}
+
+/* ---------------- Ticket card (shared) ---------------- */
+function ticketCard(t) {
+  const T = TICKETS.find(x => x.id === t.type);
+  const until = t.validatedAt ? new Date(t.validatedAt.getTime() + 3600e3) : null;
+  const leftTxt = t.left == null ? 'Voyages illimités' : `${t.left} voyage${t.left > 1 ? 's' : ''} restant${t.left > 1 ? 's' : ''}`;
+  const canValidate = t.left == null ? !t.validatedAt : t.left > 0;
+  return `<div class="ticket">
+    <div class="top"><div><b>${t.name}</b><div class="t-sm" style="opacity:.9">${t.uid}</div></div>${I(T ? T.icon : 'confirmation_number', 'fill')}</div>
+    <div class="mid">
+      <canvas data-qr="${t.uid}" aria-label="Code QR du ticket"></canvas>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="t-md"><b>${leftTxt}</b><br><span class="muted">Réseau EcoCity · toutes zones</span></div>
+        ${t.validatedAt ? `<div class="valid">${I('verified', 'fill')} Validé à ${hhmm(t.validatedAt)}, valable jusqu’à ${hhmm(until)}</div>` : ''}
+        ${canValidate ? `<button class="btn k ${S.mode === 'simple' ? 'wide' : 'sm'}" data-act="validate" data-arg="${t.uid}">${I('contactless')} ${t.validatedAt ? 'Valider un autre voyage' : 'Valider mon ticket'}</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- Buy flow (shared) ---------------- */
+function buyFlow() {
+  const B = S.buy, simple = S.mode === 'simple';
+  const T = TICKETS.find(t => t.id === B.type);
+  const bar = n => `<div class="steps" aria-label="Étape ${n} sur 3">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div>`;
+  const back = `<button class="btn glass ${simple ? 'wide' : ''}" data-act="buyback">${I('arrow_back')} Retour</button>`;
+  if (B.step === 1) return `${bar(1)}
+    <p class="${simple ? '' : 'muted t-md'}" style="margin:0"><b>Étape 1 sur 3.</b> Choisissez votre ticket.</p>
+    ${TICKETS.map(t => `<button class="opt" data-act="buypick" data-arg="${t.id}">
+      <span class="ic">${I(t.icon)}</span><span><b>${t.name}</b><small>${t.desc}</small></span><span class="p">${eur(t.price)}</span></button>`).join('')}`;
+  if (B.step === 2) return `${bar(2)}
+    <p style="margin:0"><b>Étape 2 sur 3.</b> Combien en voulez-vous ?</p>
+    <div class="opt sel"><span class="ic">${I(T.icon)}</span><span><b>${T.name}</b><small>${eur(T.price)} l’unité</small></span></div>
+    <div class="stepper">
+      <button data-act="qty" data-arg="-1" aria-label="Un de moins">${I('remove')}</button>
+      <output aria-live="polite">${B.qty}</output>
+      <button data-act="qty" data-arg="1" aria-label="Un de plus">${I('add')}</button>
+    </div>
+    <div class="recap"><div><span>Total</span><span class="tot">${eur(T.price * B.qty)}</span></div></div>
+    <button class="btn k wide" data-act="buynext">Continuer ${I('arrow_forward')}</button>${back}`;
+  if (B.step === 3) {
+    const coinCost = T.coins ? T.coins * B.qty : null;
+    const canCoins = !simple && coinCost && S.coins >= coinCost;
+    return `${bar(3)}
+    <p style="margin:0"><b>Étape 3 sur 3.</b> Vérifiez et payez.</p>
+    <div class="recap">
+      <div><span>${T.name}</span><span>× ${B.qty}</span></div>
+      <div><span>Total à payer</span><span class="tot">${B.pay === 'coins' ? fmt(coinCost) + ' coins' : eur(T.price * B.qty)}</span></div>
+    </div>
+    ${!simple && coinCost ? `
+      <button class="opt ${B.pay === 'card' ? 'sel' : ''}" data-act="paymethod" data-arg="card"><span class="ic">${I('credit_card')}</span><span><b>Carte enregistrée</b><small>Visa •••• 4242 (exemple)</small></span></button>
+      <button class="opt ${B.pay === 'coins' ? 'sel' : ''}" data-act="paymethod" data-arg="coins" ${canCoins ? '' : 'disabled style="opacity:.5"'}><span class="ic" style="background:var(--cream);color:var(--gold-deep)">${I('paid')}</span><span><b>Payer en EcoCoins</b><small>${fmt(coinCost)} coins · solde ${fmt(S.coins)}</small></span></button>`
+    : `<div class="opt sel"><span class="ic">${I('credit_card')}</span><span><b>Carte enregistrée</b><small>Visa •••• 4242 (exemple)</small></span></div>`}
+    <div class="demo-note">${I('info')} Démonstration : aucun paiement n’est effectué.</div>
+    <button class="btn k wide" data-act="pay">${I('lock')} Payer ${B.pay === 'coins' ? fmt(coinCost) + ' coins' : eur(T.price * B.qty)}</button>${back}`;
+  }
+  return `<div class="ok">
+      <div class="check">${I('check')}</div>
+      <h2 style="margin:6px 0 0;font-family:var(--display)">Paiement accepté</h2>
+      <p style="margin:0">Votre ${T.name.toLowerCase()} est prêt${B.qty > 1 ? ` (× ${B.qty})` : ''}.<br>Montrez le code QR au contrôleur.</p>
+    </div>
+    ${ticketCard(S.tickets[0])}
+    <button class="btn k wide" data-act="${simple ? 'stab' : 'opentickets'}" data-arg="tickets">${I('wallet')} Voir mes tickets</button>
+    <button class="btn glass wide" data-act="${simple ? 'stab' : 'close'}" data-arg="home">${simple ? 'Retour à l’accueil' : 'Fermer'}</button>`;
+}
+
+/* ======================================================================
+   FULL MODE
+   ====================================================================== */
+const SUBS = { accueil: 'Accueil', ecocity: 'Carte EcoCity', quetes: 'Quêtes & défis', boutique: 'Boutique récompenses', rangs: 'Classement' };
+function fullHeader() {
+  if (S.tab === 'profil') return `<header class="hd"><button class="back" data-act="tab" data-arg="accueil" aria-label="Retour">${I('arrow_back')}</button>
+    <div class="brand"><b style="color:var(--ink)">Profil joueur</b><small>EcoQuest</small></div>
+    <div class="coin-pill">${COIN}<span class="num">${fmt(S.coins)}</span></div></header>`;
+  return `<header class="hd"><div class="logo">${I('eco', 'fill')}</div>
+    <div class="brand"><b>EcoQuest</b><small>${SUBS[S.tab]}</small></div>
+    <button class="coin-pill" data-act="tab" data-arg="boutique" aria-label="Solde EcoCoins">${COIN}<span class="num">${fmt(S.coins)}</span></button>
+    <button class="avatar" data-act="tab" data-arg="profil" aria-label="Mon profil"><span>A</span></button></header>`;
+}
+function fullNav() {
+  const items = [['accueil', 'stadia_controller', 'Accueil'], ['ecocity', 'map', 'EcoCity'], ['quetes', 'military_tech', 'Quêtes'], ['boutique', 'redeem', 'Boutique'], ['rangs', 'leaderboard', 'Rangs']];
+  return `<nav class="nav">${items.map(([k, ic, l]) => `<button class="${S.tab === k ? 'on' : ''}" data-act="tab" data-arg="${k}">${I(ic)}${l}</button>`).join('')}</nav>`;
+}
+
+function scrAccueil() {
+  const d = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const pct = Math.min(100, S.xp / 3000 * 100);
+  return `<div class="pad">
+    <section class="hello"><p class="eyebrow">${d}</p><h1>Bonjour Alex</h1><p>Air pur à 98 % aujourd’hui. Idéal pour marcher ou pédaler.</p></section>
+    <section class="wallet">
+      <div class="between" style="position:relative;z-index:1"><span class="eyebrow" style="color:#a7f3d0">Mon trésor</span><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">${I('local_fire_department', 'fill')} 7 jours</span></div>
+      <div class="row" style="position:relative;z-index:1;margin:8px 0 12px"><span class="big">${fmt(S.coins)}</span><span style="font-weight:700;opacity:.9">EcoCoins</span></div>
+      <div class="between t-sm" style="position:relative;z-index:1;margin-bottom:6px"><span>Niveau ${level()} · Capitaine Feuille</span><span class="num">${fmt(S.xp)} / 3 000 XP</span></div>
+      <div class="bar" style="position:relative;z-index:1"><i style="width:${pct}%"></i></div>
+    </section>
+    <section class="quick">
+      <button data-act="openbuy"><span class="q" style="color:var(--cyan-deep)">${I('confirmation_number')}</span>Acheter un ticket</button>
+      <button data-act="opentickets"><span class="q" style="color:var(--forest)">${I('qr_code_2')}</span>Mes tickets (${S.tickets.length})</button>
+      <button data-act="tab" data-arg="ecocity"><span class="q" style="color:var(--violet)">${I('route')}</span>Itinéraire</button>
+      <button data-act="setmode" data-arg="simple"><span class="q" style="color:var(--gold-deep)">${I('text_increase')}</span>Mode simple</button>
+    </section>
+    <section class="card">
+      <div class="between" style="margin-bottom:6px"><h3>Prochains passages</h3><span class="chip g">${I('location_on')} Centre-ville</span></div>
+      ${departuresHTML('centre', false)}
+    </section>
+    <button class="card" data-act="tab" data-arg="quetes" style="text-align:left;display:flex;flex-direction:column;gap:10px">
+      <div class="between"><span class="chip o">${I('auto_awesome', 'fill')} Quête légendaire</span><span class="t-sm muted">Expire dans 07 h 42</span></div>
+      <h3>Le Grand Tour Vert d’EcoCity</h3>
+      <div class="between t-sm"><span>${Math.min(S.trips, 3)} / 3 trajets complétés</span><b class="num">${Math.round(Math.min(S.trips, 3) / 3 * 100)} %</b></div>
+      <div class="bar"><i style="width:${Math.min(S.trips, 3) / 3 * 100}%"></i></div>
+    </button>
+  </div>`;
+}
+
+function scrCity() {
+  const q = CITY_QUESTS[S.transport];
+  const chips = [['tram', 'tram', 'Tram T1'], ['bus', 'directions_bus', 'Bus B1–B6'], ['navette', 'directions_boat', 'Navette NF1'], ['velo', 'pedal_bike', 'Stations vélo']];
+  const st = S.fullStop && stopById(S.fullStop);
+  return `<div class="pad">
+    <div class="status">
+      <div>${I('eco', 'fill')}<span><b>Air pur 98 %</b><small>Ciel idéal</small></span></div>
+      <div style="background:var(--cream);border-color:rgba(245,158,11,.3)">${I('stars', 'fill')}<span><b style="color:#92400e">Zone x2 XP</b><small>active</small></span></div>
+    </div>
+    <div class="hscroll">${chips.map(([k, ic, l]) => `<button class="pillbtn ${S.transport === k ? 'on' : ''}" data-act="transport" data-arg="${k}">${I(ic)} ${l}</button>`).join('')}</div>
+    <div class="mapbox"><div class="mapscroll" id="fmap">${mapSVG(false)}</div>
+      <div class="map-ctrl left">
+        <button data-act="fzoom" data-arg="1" aria-label="Zoomer" ${S.fzoom >= ZOOMS_FULL.at(-1) ? 'disabled style="opacity:.4"' : ''}>${I('add')}</button>
+        <button data-act="fzoom" data-arg="-1" aria-label="Dézoomer" ${S.fzoom <= ZOOMS_FULL[0] ? 'disabled style="opacity:.4"' : ''}>${I('remove')}</button>
+      </div>
+      <div class="map-ctrl">
+        <button data-act="locate" aria-label="Me localiser">${I('my_location')}</button>
+        <button data-act="layers" aria-label="Calques">${I('layers')}</button>
+      </div>
+    </div>
+    ${st ? `<section class="card popup">
+      <div class="between"><h3>${st.name}</h3><button data-act="fstop" data-arg="${st.id}" aria-label="Fermer">${I('close')}</button></div>
+      ${departuresHTML(st.id, false)}
+      <button class="btn glass sm" data-act="openbuy">${I('confirmation_number')} Acheter un ticket</button>
+    </section>` : `<p class="t-sm muted" style="margin:-6px 4px 0">Touchez un arrêt sur la carte pour voir les prochains passages.</p>`}
+    <section class="card quest">
+      <div class="between"><span class="row"><span class="chip g">Quête éco-express</span><span class="t-sm" style="color:var(--cyan-deep);font-weight:700">${I('schedule')} ${q.time} min</span></span></div>
+      <h3 style="margin:10px 0 12px;font-size:19px">${q.title}</h3>
+      <div class="rewards">
+        <div><b style="color:var(--gold-deep)">+${q.coins}</b><small>EcoCoins</small></div>
+        <div><b style="color:var(--cyan-deep)">+${q.xp}</b><small>XP Héros</small></div>
+        <div><b style="color:var(--forest)">−${q.co2} g</b><small>CO₂ évité</small></div>
+      </div>
+      <div class="timeline" style="margin:16px 0 14px">
+        ${q.steps.map(([ic, t, s, bg, fg], i) => `<div class="tl"><span class="dot" style="background:${bg};color:${fg}">${I(ic, 'fill')}</span><span><b>${t}</b><small>${s}</small></span>${i === 0 ? `<span class="chip c" style="height:fit-content">${q.line}</span>` : ''}</div>`).join('')}
+      </div>
+      <button class="btn k wide" data-act="starttrip">Lancer le trajet et chasser les pièces ${I('rocket_launch')}</button>
+    </section>
+    <section class="team">
+      <span class="logo" style="width:44px;height:44px;border-radius:50%;flex:none">${I('groups', 'fill')}</span>
+      <span style="flex:1;min-width:0"><b class="t-md">Défi d’équipe en cours</b><br><span class="t-sm muted">Alex, Léa et 42 éco-citoyens explorent ce secteur</span></span>
+      <b class="num" style="color:var(--forest)">94 %</b>
+    </section>
+  </div>`;
+}
+
+function scrQuetes() {
+  const legendDone = S.trips >= 3;
+  const daily = `
+    <section class="card legend">
+      <div class="between"><span class="chip o">${I('auto_awesome', 'fill')} Quête légendaire</span><span class="chip c">+300 XP</span></div>
+      <h2>Le Grand Tour Vert d’EcoCity</h2>
+      <p class="t-md" style="margin:0;color:var(--ink-2)">Réaliser 3 trajets en combinant 2 modes de mobilité douce différents.</p>
+      <div class="between t-sm" style="margin:12px 0 6px"><span>${I('route')} Progression : ${Math.min(S.trips, 3)}/3 trajets</span><b class="num" style="color:var(--forest)">${Math.round(Math.min(S.trips, 3) / 3 * 100)} %</b></div>
+      <div class="bar"><i style="width:${Math.min(S.trips, 3) / 3 * 100}%"></i></div>
+      <div class="checks" style="margin:12px 0">
+        <span style="color:var(--forest)">${I('check_circle', 'fill')} Tram L2</span>
+        <span style="color:var(--forest)">${I('check_circle', 'fill')} Vélo 1,2 km</span>
+        <span style="color:${legendDone ? 'var(--forest)' : 'var(--muted)'}">${I(legendDone ? 'check_circle' : 'radio_button_unchecked', legendDone ? 'fill' : '')} Trajet final</span>
+      </div>
+      <div class="rewards" style="grid-template-columns:1fr 1fr;margin-bottom:14px"><div><b style="color:var(--gold-deep)">+150</b><small>EcoCoins</small></div><div><b style="color:var(--violet)">Coffre rare</b><small>Butin garanti</small></div></div>
+      ${S.legendClaimed ? `<button class="btn forest wide" disabled>${I('lock_open')} Coffre ouvert</button>`
+        : legendDone ? `<button class="btn gold wide" data-act="claimlegend">${I('redeem', 'fill')} Ouvrir le coffre</button>`
+        : `<button class="btn k wide" data-act="tab" data-arg="ecocity">${I('bolt', 'fill')} Valider un trajet en direct</button>`}
+    </section>
+    <h3 class="h-sec">Missions du jour</h3>
+    <section class="card mission">
+      <span class="ico" style="background:var(--mint);color:var(--forest)">${I('directions_bus')}</span>
+      <div><div class="between"><h4>Heures Vertes Zen</h4><span class="chip g">${S.zenClaimed ? 'Réclamé' : 'Complété'}</span></div>
+        <p>Prendre le bus ou le tram entre 14 h 00 et 16 h 30 pour lisser les pics.</p>
+        <div class="between"><span class="t-sm" style="color:var(--gold-deep);font-weight:700">${COIN} +50 coins</span>
+        ${S.zenClaimed ? `<span class="t-sm muted">${I('check')} Fait</span>` : `<button class="btn gold sm" data-act="claimzen">${I('celebration')} Réclamer</button>`}</div></div>
+    </section>
+    <section class="card mission">
+      <span class="ico" style="background:var(--sky);color:var(--cyan-deep)">${I('pedal_bike')}</span>
+      <div><div class="between"><h4>Coup de Pédale Éclair</h4><b class="num t-md" style="color:var(--cyan-deep)">${S.veloKm.toFixed(1).replace('.', ',')} / 3 km</b></div>
+        <p>Parcourir au moins 3 km sur un vélo de ville partagé.</p>
+        <div class="bar" style="margin-bottom:10px"><i style="width:${Math.min(100, S.veloKm / 3 * 100)}%"></i></div>
+        <div class="between"><span class="t-sm" style="color:var(--gold-deep);font-weight:700">${COIN} +80 coins</span>
+        ${S.veloClaimed ? `<span class="t-sm muted">${I('check')} Fait</span>` : S.veloKm >= 3 ? `<button class="btn gold sm" data-act="claimvelo">${I('celebration')} Réclamer</button>` : `<button class="btn glass sm" data-act="pedal">${I('pedal_bike')} Pédaler 0,6 km</button>`}</div></div>
+    </section>
+    <section class="card mission">
+      <span class="ico" style="background:var(--lilac);color:var(--violet)">${I('group_add')}</span>
+      <div><div class="between"><h4>Copain de Mobilité</h4><b class="num t-md">${S.invited ? 1 : 0} / 1</b></div>
+        <p>Voyager en transport en commun avec un ami et valider le trajet ensemble.</p>
+        <div class="between"><span class="t-sm" style="color:var(--gold-deep);font-weight:700">${COIN} +60 coins</span>
+        <button class="btn glass sm" data-act="invite" ${S.invited ? 'disabled' : ''}>${S.invited ? 'Invitation prête' : 'Inviter un proche'} ${I('chevron_right')}</button></div></div>
+    </section>`;
+  const weekly = `
+    <section class="card" style="background:linear-gradient(160deg,#fff,#fdf2f8)">
+      <div class="between"><span class="chip v">Saison printanière</span><span class="t-sm muted">4 jours restants</span></div>
+      <h3 style="margin:10px 0 6px;font-size:19px">Défi des Rives Fleuries</h3>
+      <p class="t-md" style="margin:0 0 12px;color:var(--ink-2)">Jauge collective : chaque km pédalé par la ville compte. Récompense : skin de vélo « Éclosion Florale ».</p>
+      <div class="between t-sm" style="margin-bottom:6px"><span>Jauge communautaire</span><b class="num">142 500 / 200 000 km</b></div>
+      <div class="bar"><i style="width:71%"></i></div>
+    </section>
+    <section class="card mission"><span class="ico" style="background:var(--mint);color:var(--forest)">${I('no_crash')}</span>
+      <div><div class="between"><h4>Semaine sans voiture</h4><b class="num t-md">4 / 7</b></div><p>Un jour compte si tous vos trajets sont doux.</p><div class="bar"><i style="width:57%"></i></div></div></section>
+    <section class="card mission"><span class="ico" style="background:var(--sky);color:var(--cyan-deep)">${I('explore')}</span>
+      <div><div class="between"><h4>Explorateur de quartiers</h4><b class="num t-md">6 / 10</b></div><p>Descendre à 10 arrêts différents cette semaine.</p><div class="bar"><i style="width:60%"></i></div></div></section>`;
+  return `<div class="pad">
+    <section class="card streak"><span class="flame">${I('local_fire_department', 'fill')}</span>
+      <span style="flex:1"><b style="font-family:var(--display);font-size:18px">Série Flamme : 7 jours</b><br><span class="t-sm muted">Multiplicateur XP et EcoCoins ×1,5 actif</span></span>
+      <span class="chip o">Bonus</span></section>
+    <div class="tabs"><button class="${S.questTab === 'daily' ? 'on' : ''}" data-act="qtab" data-arg="daily">${I('today')} Quotidiennes</button><button class="${S.questTab === 'weekly' ? 'on' : ''}" data-act="qtab" data-arg="weekly">${I('date_range')} Hebdo</button></div>
+    ${S.questTab === 'daily' ? daily : weekly}
+    <div class="between"><h3 class="h-sec">Derniers succès</h3><span class="t-sm" style="color:var(--cyan-deep);font-weight:700">18 / 42</span></div>
+    <div class="ach">
+      <div><span class="ic" style="background:var(--mint);color:var(--forest)">${I('forest', 'fill')}</span><b>Poumon Vert</b><small>50 kg CO₂ évités</small></div>
+      <div><span class="ic" style="background:var(--sky);color:var(--cyan-deep)">${I('bolt', 'fill')}</span><b>Survolteur</b><small>10 trajets tram</small></div>
+      <div><span class="ic" style="background:var(--cream);color:var(--gold-deep)">${I('dark_mode', 'fill')}</span><b>Navette Nuit</b><small>Retour éco après 22 h</small></div>
+    </div>
+  </div>`;
+}
+
+function scrShop() {
+  const cats = [['all', 'Tout'], ['transport', 'Transport'], ['local', 'Pépites locales'], ['avatar', 'Avatar']];
+  const list = OFFERS.filter(o => S.shopCat === 'all' || S.shopCat === o.cat);
+  const offerHTML = o => {
+    const can = S.coins >= o.cost;
+    return `<section class="card offer">
+      <div class="art" style="background:${o.bg}">${ART[o.id] || ''}
+        <span class="chip ${o.badge[0]}">${o.badge[1]}</span>${o.dist ? `<span class="dist">${I('near_me')} ${o.dist}</span>` : ''}
+        <div class="cap"><small>${o.place}</small><h4>${o.title}</h4></div>
+      </div>
+      <div class="body">
+        <span class="t-md" style="color:var(--ink-2)">${I('verified', '')} ${o.desc}</span>
+        <div class="between"><span class="price">${COIN}${o.cost} <s>${o.was}</s></span>
+          <button class="btn gold sm" data-act="exchange" data-arg="${o.id}" ${can ? '' : 'disabled'}>${can ? `${I('redeem')} Échanger` : `Il manque ${o.cost - S.coins}`}</button></div>
+      </div>
+    </section>`;
+  };
+  const skins = `<h3 class="h-sec">Garde-robe de l’avatar</h3>
+    ${SKINS.map(s => {
+      const owned = S.owned[s.id], eq = S.equipped === s.id;
+      return `<section class="card skin"><span class="ic">${ART[s.id]}</span>
+        <div style="min-width:0"><span class="chip ${s.rar[0]}">${s.rar[1]}</span><h4>${s.name}</h4><span class="t-sm muted">${s.note}</span></div>
+        ${eq ? `<span class="chip g">Porté</span>` : owned ? `<button class="btn glass sm" data-act="equip" data-arg="${s.id}">Équiper</button>`
+          : `<button class="btn forest sm" data-act="exchange" data-arg="${s.id}" ${S.coins >= s.cost ? '' : 'disabled'}>${COIN} ${s.cost}</button>`}
+      </section>`;
+    }).join('')}`;
+  return `<div class="pad">
+    <section class="card treasure">
+      <div class="between"><span class="eyebrow" style="color:#92400e">${I('stars', 'fill')} Trésor disponible</span><span class="t-sm" style="color:#92400e;font-weight:700">100 coins ≈ 2,50 €</span></div>
+      <div class="row" style="margin:6px 0 2px"><span class="coin" style="width:40px;height:40px;font-size:18px">€</span><span class="big">${fmt(S.coins)}</span></div>
+      <p class="t-sm" style="margin:0 0 14px;color:#92400e">Valeur estimée : ~${eur(S.coins / 40)} d’éco-pouvoir d’achat</p>
+      <div class="row"><button class="btn glass sm" style="flex:1" data-act="coupons">${I('local_activity')} Mes coupons (${S.coupons.length})</button><button class="btn glass sm" style="flex:1" data-act="opentickets">${I('qr_code_2')} Mes tickets</button></div>
+    </section>
+    <div class="hscroll">${cats.map(([k, l]) => `<button class="pillbtn ${S.shopCat === k ? 'on' : ''}" data-act="shopcat" data-arg="${k}">${l}</button>`).join('')}</div>
+    ${S.shopCat !== 'avatar' ? list.map(offerHTML).join('') : ''}
+    ${S.shopCat === 'all' || S.shopCat === 'avatar' ? skins : ''}
+    <section class="team" style="background:var(--mint)"><span class="logo" style="width:44px;height:44px;flex:none">${I('savings', 'fill')}</span>
+      <span style="flex:1"><b class="t-md">Besoin de plus de coins ?</b><br><span class="t-sm" style="color:var(--ink-2)">Prends le tram ou valide un défi piéton aujourd’hui.</span></span>
+      <button class="back" style="background:#fff" data-act="tab" data-arg="quetes" aria-label="Voir les quêtes">${I('arrow_forward')}</button></section>
+  </div>`;
+}
+
+function scrRangs() {
+  const quart = `
+    <section class="card" style="background:linear-gradient(160deg,#eff6ff,#ecfdf5)">
+      <div class="between"><span class="eyebrow">Objectif métropolitain</span><span class="chip g">78 % réussi</span></div>
+      <h3 style="margin:8px 0 12px;font-size:19px">Cap 100 000 trajets décarbonés</h3>
+      <div class="bar"><i style="width:78%"></i></div>
+      <div class="between t-sm" style="margin-top:8px"><span class="muted">Récompense : concert géant au Grand Parc</span><b class="num">78 412 / 100k</b></div>
+    </section>
+    <section class="card">
+      <div class="row"><span class="logo" style="width:46px;height:46px;flex:none">${I('energy_savings_leaf', 'fill')}</span><div><span class="eyebrow">Votre quartier · <span style="color:var(--gold-deep)">N°1</span></span><h3 style="font-size:20px">Secteur Rive Verte</h3></div></div>
+      <div style="background:var(--lilac);border-radius:20px;padding:12px 14px;margin:12px 0" class="t-md"><b>Bonus de quartier actif</b><br><span style="color:var(--ink-2)">−15 % chez 45 artisans et cafés locaux ce week-end grâce à votre avance.</span></div>
+      <div class="between t-sm"><span>Votre apport : <b>34 trajets doux</b></span><span class="chip g">Top 5 %</span></div>
+    </section>
+    <div class="between"><h3 class="h-sec">Podium des quartiers</h3><span class="t-sm muted">Clôture dimanche minuit</span></div>
+    <div class="podium">
+      <div><div class="who"><span class="medal">🏙️</span><b>Technopôle</b><small>46 800 pts</small></div><div class="step" style="height:84px">2</div></div>
+      <div class="first"><div class="who"><span class="medal" style="border-color:#f59e0b;width:66px;height:66px">🌿</span><b>Rive Verte</b><small style="color:var(--forest)">52 400 pts</small></div><div class="step" style="height:120px">1</div></div>
+      <div><div class="who"><span class="medal">⚓</span><b>Port-Azur</b><small>41 200 pts</small></div><div class="step" style="height:64px">3</div></div>
+    </div>`;
+  const people = [
+    { n: 'Hugo Rail', s: 'Abonné du T1', xp: 2640, c: '#7c3aed' },
+    { n: 'Léa & son Vélo', s: '5 trajets consécutifs', xp: 2510, c: '#0ea5e9' },
+    { n: 'Thomas Tramway', s: 'Champion des rails', xp: 2490, c: '#f59e0b' },
+    { n: 'Sarah Green', s: 'Marcheuse urbaine', xp: 2380, c: '#ef4444' },
+    { n: 'Vous (Alex)', s: '7 jours de série active', xp: S.xp, c: '#10b981', me: true },
+  ].sort((a, b) => b.xp - a.xp);
+  const myIdx = people.findIndex(p => p.me), rank = 39 + myIdx;
+  const ahead = people[myIdx - 1];
+  const ligue = `
+    <section class="you"><span class="avatar" style="width:48px;height:48px"><span>A</span></span>
+      <span><b style="font-family:var(--display);font-size:16px">Vous (Alex V.)</b><br><span class="t-sm" style="opacity:.9">${ahead ? `Plus que ${ahead.xp - S.xp + 1} XP pour dépasser ${ahead.n.split(' ')[0]}` : 'Vous menez la ligue !'}</span></span>
+      <span style="text-align:right"><b style="font-family:var(--display);font-size:26px">#${rank}</b><br><span class="t-sm num">${fmt(S.xp)} XP</span></span></section>
+    <div class="between"><h3 class="h-sec">Ligue Platine</h3><span class="chip g">${I('trending_up')} Coude-à-coude</span></div>
+    ${people.map((p, i) => `<div class="lb ${p.me ? 'me' : ''}"><span class="rk">${39 + i}</span><span class="face" style="background:${p.c}">${p.n[0]}</span>
+      <span style="min-width:0"><b>${p.n}</b><br><span class="t-sm muted">${p.s}</span></span>
+      <span class="xp">${fmt(p.xp)} XP<small>${p.me ? 'Votre rang' : (p.xp > S.xp ? `+${p.xp - S.xp}` : `−${S.xp - p.xp}`)}</small></span></div>`).join('')}
+    <section class="team"><span class="back" style="background:#fff;flex:none">${I('handshake')}</span>
+      <span style="flex:1"><b class="t-md">Envoyer des encouragements ?</b><br><span class="t-sm muted">Félicitez Thomas et gagnez +10 EcoCoins</span></span>
+      <button class="btn forest sm" data-act="bravo" ${S.bravo ? 'disabled' : ''}>${I('favorite', 'fill')} ${S.bravo ? 'Envoyé' : 'Bravo !'}</button></section>`;
+  return `<div class="pad">
+    <div class="tabs"><button class="${S.rankTab === 'quartiers' ? 'on' : ''}" data-act="rtab" data-arg="quartiers">${I('location_city')} Quartiers</button><button class="${S.rankTab === 'ligue' ? 'on' : ''}" data-act="rtab" data-arg="ligue">${I('military_tech')} Ligue Héros</button></div>
+    ${S.rankTab === 'quartiers' ? quart : ligue}
+  </div>`;
+}
+
+function scrProfil() {
+  const pct = Math.min(100, S.xp / 3000 * 100);
+  const sk = SKINS.find(s => s.id === S.equipped);
+  return `<div class="pad">
+    <section class="hero-p">
+      <div class="between" style="width:100%"><span class="chip c">${I('workspace_premium')} Ligue Platine</span><span class="chip o">Top 3 %</span></div>
+      <div class="big-av"><span>🧑‍🚀</span></div>
+      <h2>Alex V. ${I('verified', 'fill')}</h2>
+      <span class="t-md" style="color:var(--forest);font-weight:700">Capitaine Feuille · Niveau ${level()}</span>
+      ${sk ? `<span class="chip g">${I(sk.icon, 'fill')} ${sk.name}</span>` : `<span class="chip g">Éco-Légende en herbe</span>`}
+    </section>
+    <section class="card">
+      <div class="between"><h3>Progression de rang</h3><b class="num" style="color:var(--forest)">${Math.round(pct)} %</b></div>
+      <div class="bar" style="margin:12px 0 8px"><i style="width:${pct}%"></i></div>
+      <div class="between t-sm"><b class="num">${fmt(S.xp)} / 3 000 XP</b><span style="color:var(--cyan-deep);font-weight:700">${S.xp >= 3000 ? 'Niveau atteint !' : `Encore ${3000 - S.xp} XP`}</span></div>
+    </section>
+    <h3 class="h-sec">Mon empreinte positive</h3>
+    <div class="stats">
+      <div><span style="color:var(--forest)">${I('eco', 'fill')}</span><b>${(42.8 + (S.trips - 2) * .4).toFixed(1).replace('.', ',')} kg</b><small>CO₂ évité · ≈ 14 arbres</small></div>
+      <div><span style="color:var(--cyan-deep)">${I('directions_bike', 'fill')}</span><b>${184 + (S.trips - 2) * 3} km</b><small>Zéro carburant fossile</small></div>
+      <div><span style="color:var(--violet)">${I('bolt', 'fill')}</span><b>98 %</b><small>Énergie 100 % verte</small></div>
+      <div><span style="color:var(--gold-deep)">${I('local_fire_department', 'fill')}</span><b>7 jours</b><small>Série éco-mobile</small></div>
+    </div>
+    <section class="card">
+      <div class="between"><h3>Pass Éco-Mobilité</h3><span class="chip g">Actif</span></div>
+      <button class="opt" style="margin-top:12px" data-act="opentickets"><span class="ic">${I('contactless')}</span><span><b>Mes tickets (${S.tickets.length})</b><small>Synchronisé avec le réseau EcoCity</small></span>${I('chevron_right')}</button>
+    </section>
+    <section class="card">
+      <h3>Affichage</h3>
+      <div class="setting" style="margin-top:8px"><span class="back" style="flex:none;background:var(--cream);color:var(--gold-deep)">${I('text_increase')}</span><span style="flex:1"><b class="t-md">Mode simple</b><br><span class="t-sm muted">Gros caractères, le plan et les tickets.</span></span><button class="btn forest sm" data-act="setmode" data-arg="simple">Activer</button></div>
+      <div class="setting"><span class="back" style="flex:none">${I('restart_alt')}</span><span style="flex:1"><b class="t-md">Écran de bienvenue</b><br><span class="t-sm muted">Recommencer la démo depuis le début.</span></span><button class="btn glass sm" data-act="reset">Revenir</button></div>
+    </section>
+  </div>`;
+}
+
+/* ======================================================================
+   SIMPLE MODE
+   ====================================================================== */
+function simpleScreen() {
+  if (S.sTab === 'home') {
+    const w = waits('centre', 'T1')[0][0];
+    return `<h2>Bonjour !</h2>
+      <div class="s-card info">
+        <span style="font-weight:700">Prochain tram à <b>Centre-ville</b></span>
+        <span class="s-next">dans ${w} minutes</span>
+        <span><span class="s-line" style="background:${LINES.T1.color}">Tram T1</span> vers Base de loisirs</span>
+      </div>
+      <button class="s-big primary" data-act="stab" data-arg="buy">${I('confirmation_number', 'fill')} Acheter un ticket</button>
+      <button class="s-big blue" data-act="stab" data-arg="plan">${I('map', 'fill')} Voir le plan</button>
+      <button class="s-big" data-act="stab" data-arg="tickets">${I('qr_code_2')} Mes tickets (${S.tickets.length})</button>
+      <div class="s-card">
+        <b>Besoin d’aide ?</b>
+        <p>Appelez gratuitement le service client :</p>
+        <span class="s-next" style="font-size:calc(28px * var(--s-scale));user-select:all">0 800 00 12 34</span>
+        <p style="color:var(--ink-2)">Du lundi au samedi, de 7 h à 20 h.</p>
+      </div>
+      <button class="s-link" data-act="setmode" data-arg="full">Passer à l’affichage complet</button>`;
+  }
+  if (S.sTab === 'plan') {
+    const st = S.stop && stopById(S.stop);
+    return `<h2>Le plan</h2>
+      <div class="legend-s">${Object.entries(LINES).map(([k, L]) => `<span><i style="background:${L.color}"></i>${k === 'NF1' ? 'Navette NF1' : k === 'T1' ? 'Tram T1' : 'Bus ' + k}</span>`).join('')}<span><i style="background:#3aa6dd;height:14px"></i>Rivière</span><span><i style="background:#dc2626;width:16px;height:16px"></i>Vous</span></div>
+      <div class="s-map" id="smap">${mapSVG(true)}</div>
+      <div class="s-zoom">
+        <button data-act="zoom" data-arg="-1" ${S.zoom <= ZOOMS_SIMPLE[0] ? 'disabled style="opacity:.4"' : ''}>${I('zoom_out')} Plus petit</button>
+        <button data-act="zoom" data-arg="1" ${S.zoom >= ZOOMS_SIMPLE.at(-1) ? 'disabled style="opacity:.4"' : ''}>${I('zoom_in')} Plus grand</button>
+      </div>
+      ${st ? `<div class="s-card info" id="stopinfo">
+          <span class="s-next" style="color:var(--ink);font-size:calc(28px * var(--s-scale))">${st.name}</span>
+          <b>Prochains départs :</b>
+          ${departuresHTML(st.id, true)}
+        </div>
+        <button class="s-big primary" data-act="stab" data-arg="buy">${I('confirmation_number', 'fill')} Acheter un ticket</button>`
+      : `<div class="s-card info"><p><b>Touchez un arrêt</b> (un rond blanc) pour voir quand passe le prochain tram ou bus.</p></div>`}`;
+  }
+  if (S.sTab === 'buy') return `<h2>Acheter un ticket</h2>${buyFlow()}`;
+  // tickets
+  return `<h2>Mes tickets</h2>
+    ${S.tickets.length ? `<p>Montrez le code QR au contrôleur. Appuyez sur <b>Valider</b> en montant.</p>${S.tickets.map(ticketCard).join('')}`
+      : `<div class="s-card"><p>Vous n’avez pas encore de ticket.</p></div>`}
+    <button class="s-big primary" data-act="stab" data-arg="buy">${I('add_circle', 'fill')} Acheter un ticket</button>`;
+}
+
+function renderSimple() {
+  const tabs = [['home', 'home', 'Accueil'], ['plan', 'map', 'Plan'], ['buy', 'confirmation_number', 'Acheter'], ['tickets', 'qr_code_2', 'Mes tickets']];
+  return `<div class="app simple ${S.big ? 'big' : ''}">
+    <header class="s-head"><div class="logo">${I('eco', 'fill')}</div><h1>EcoQuest</h1>
+      <button class="s-size" data-act="big" aria-label="${S.big ? 'Texte normal' : 'Agrandir le texte'}">${S.big ? 'A−' : 'A+'}</button></header>
+    <main class="scroll s-main" id="scroll">${simpleScreen()}</main>
+    <nav class="s-nav">${tabs.map(([k, ic, l]) => `<button class="${S.sTab === k ? 'on' : ''}" data-act="stab" data-arg="${k}">${I(ic, S.sTab === k ? 'fill' : '')}${l}</button>`).join('')}</nav>
+  </div>`;
+}
+
+/* ======================================================================
+   SHEETS (full mode)
+   ====================================================================== */
+function sheetHTML() {
+  const wrap = (inner, closable = true) => `<div class="backdrop" data-act="${closable ? 'backdrop' : ''}"><div class="panel" role="dialog" aria-modal="true"><div class="grab"></div>${inner}</div></div>`;
+  const head = t => `<div class="between"><h3>${t}</h3><button class="back" data-act="close" aria-label="Fermer">${I('close')}</button></div>`;
+  switch (S.sheet) {
+    case 'buy': return wrap(head('Acheter un ticket') + buyFlow());
+    case 'tickets': return wrap(head('Mes tickets') + (S.tickets.length ? S.tickets.map(ticketCard).join('') : '<p class="muted">Aucun ticket pour le moment.</p>') + `<button class="btn k wide" data-act="openbuy">${I('add')} Acheter un ticket</button>`);
+    case 'coupons': return wrap(head('Mes coupons') + (S.coupons.length ? S.coupons.map(c => `<div class="card"><div class="between"><b>${c.title}</b><span class="chip g">Valide</span></div><p class="t-sm muted" style="margin:4px 0 10px">${c.place}</p><div class="price" style="justify-content:center;font-size:20px;letter-spacing:.12em">${c.code}</div></div>`).join('') : '<p class="muted t-md">Échangez vos EcoCoins dans la boutique pour obtenir des coupons.</p>'));
+    case 'confirm': {
+      const o = S.sheetData;
+      return wrap(head('Confirmer l’échange') + `
+        ${o.title ? `<div class="art preview" style="background:${o.bg}">${ART[o.id] || ''}<div class="cap"><small>${o.place}</small><h4>${o.title}</h4></div></div>`
+          : `<div class="card row"><span class="skinpic">${ART[o.id]}</span><span><b>${o.name}</b><br><span class="t-sm muted">${o.note}</span></span></div>`}
+        <div class="recap"><div><span>Coût</span><b class="num">${o.cost} coins</b></div><div><span>Solde après échange</span><b class="num">${fmt(S.coins - o.cost)} coins</b></div></div>
+        <button class="btn gold wide" data-act="doexchange">${I('redeem', 'fill')} Échanger ${o.cost} coins</button>
+        <button class="btn glass wide" data-act="close">Annuler</button>`);
+    }
+    case 'done': {
+      const c = S.sheetData;
+      return wrap(`<div class="ok"><div class="check">${I('check')}</div><h3>${c.ticket ? 'Ticket ajouté !' : c.skin ? 'Nouvel équipement !' : 'Coupon obtenu !'}</h3><p class="t-md muted" style="margin:0">${c.ticket ? 'Il vous attend dans Mes tickets.' : c.skin ? 'Votre avatar le porte déjà.' : 'Présentez ce code en boutique.'}</p></div>
+        ${c.code ? `<div class="price" style="justify-content:center;font-size:24px;letter-spacing:.14em;padding:14px">${c.code}</div>` : ''}
+        ${c.ticket ? `<button class="btn k wide" data-act="opentickets">${I('qr_code_2')} Voir mes tickets</button>` : ''}
+        <button class="btn glass wide" data-act="close">Fermer</button>`);
+    }
+    case 'trip': {
+      const q = CITY_QUESTS[S.trip.mode], p = S.trip.p;
+      const stepIdx = p < 34 ? 0 : p < 70 ? 1 : 2;
+      return wrap(`<div class="between"><h3>${q.title}</h3><span class="chip c">${I('schedule')} ${q.time} min</span></div>
+        <div class="demo-note">${I('fast_forward')} Trajet simulé en accéléré pour la démo.</div>
+        <div class="bar" style="height:14px"><i id="tripbar" style="width:${p}%"></i></div>
+        <div class="timeline">${q.steps.map(([ic, t, s, bg, fg], i) => `<div class="tl" style="opacity:${i <= stepIdx || S.trip.done ? 1 : .35}"><span class="dot" style="background:${bg};color:${fg}">${I(i < stepIdx || S.trip.done ? 'check' : ic, 'fill')}</span><span><b>${t}</b><small>${s}</small></span></div>`).join('')}</div>
+        ${S.trip.done ? `<div class="rewards"><div><b style="color:var(--gold-deep)">+${q.coins}</b><small>EcoCoins</small></div><div><b style="color:var(--cyan-deep)">+${q.xp}</b><small>XP</small></div><div><b style="color:var(--forest)">−${q.co2} g</b><small>CO₂</small></div></div>
+          <button class="btn gold wide" data-act="collect">${I('celebration', 'fill')} Récupérer mes récompenses</button>`
+        : `<button class="btn glass wide" data-act="canceltrip">Arrêter le trajet</button>`}`, false);
+    }
+  }
+  return '';
+}
+
+/* ======================================================================
+   RENDER
+   ====================================================================== */
+function render() {
+  const sc = $('#scroll'); const keep = sc ? sc.scrollTop : 0; const keyBefore = S.mode + S.tab + S.sTab;
+  for (const [id, k] of [['#fmap', 'f'], ['#smap', 's']]) {
+    const m = $(id);
+    if (m && !mapView.hold) mapView[k] = { cx: (m.scrollLeft + m.clientWidth / 2) / m.scrollWidth, cy: (m.scrollTop + m.clientHeight / 2) / m.scrollHeight };
+  }
+  let html;
+  if (!S.mode) {
+    html = `<div class="welcome">
+      <div class="logo">${I('eco', 'fill')}</div>
+      <div><h1>Bienvenue sur EcoQuest</h1></div>
+      <p class="lead">Se déplacer en tram, bus ou vélo, et être récompensé. Comment voulez-vous utiliser l’application ?</p>
+      <button class="choice" data-act="setmode" data-arg="full">
+        <span class="ic" style="background:var(--kinetic)">${I('sports_esports', 'fill')}</span>
+        <span><h2>EcoQuest complet</h2><p>Carte interactive, quêtes, EcoCoins, boutique et classement entre quartiers.</p></span>
+      </button>
+      <button class="choice simple-c" data-act="setmode" data-arg="simple">
+        <span class="ic" style="background:var(--forest)">${I('visibility', 'fill')}</span>
+        <span><h2>Mode simple</h2><p>Gros caractères. Le plan, acheter un ticket, mes tickets. Rien d’autre.</p></span>
+      </button>
+      <p class="small-note">Vous pourrez changer de mode à tout moment.</p>
+    </div>`;
+  } else if (S.mode === 'simple') {
+    html = renderSimple();
+  } else {
+    const scr = { accueil: scrAccueil, ecocity: scrCity, quetes: scrQuetes, boutique: scrShop, rangs: scrRangs, profil: scrProfil }[S.tab]();
+    html = `<div class="app full">${fullHeader()}<main class="scroll" id="scroll">${scr}</main>${fullNav()}</div>`;
+  }
+  $('#root').innerHTML = html;
+  $('#sheet').innerHTML = S.mode === 'full' ? sheetHTML() : '';
+  document.querySelectorAll('canvas[data-qr]').forEach(drawQR);
+  const ns = $('#scroll');
+  if (ns) ns.scrollTop = (render.lastKey === keyBefore) ? keep : 0;
+  for (const [id, k] of [['#fmap', 'f'], ['#smap', 's']]) {
+    const m = $(id); if (!m) continue;
+    m.scrollLeft = mapView[k].cx * m.scrollWidth - m.clientWidth / 2;
+    m.scrollTop = mapView[k].cy * m.scrollHeight - m.clientHeight / 2;
+  }
+  mapView.hold = false;
+  render.lastKey = S.mode + S.tab + S.sTab;
+}
+
+/* ---------------- Actions ---------------- */
+function startTrip() {
+  S.trip = { mode: S.transport, p: 0, done: false };
+  S.sheet = 'trip'; render();
+  clearInterval(tripTimer);
+  tripTimer = setInterval(() => {
+    S.trip.p = Math.min(100, S.trip.p + 2);
+    const prevStep = S.trip.p - 2 < 34 ? 0 : S.trip.p - 2 < 70 ? 1 : 2, step = S.trip.p < 34 ? 0 : S.trip.p < 70 ? 1 : 2;
+    if (S.trip.p >= 100) { S.trip.done = true; clearInterval(tripTimer); $('#sheet').innerHTML = sheetHTML(); return; }
+    if (step !== prevStep) $('#sheet').innerHTML = sheetHTML();
+    else { const b = $('#tripbar'); if (b) b.style.width = S.trip.p + '%'; }
+  }, 90);
+}
+function payTicket() {
+  const B = S.buy, T = TICKETS.find(t => t.id === B.type);
+  if (B.pay === 'coins') S.coins -= T.coins * B.qty;
+  const left = T.uses == null ? null : T.uses * B.qty;
+  // Passes bought in quantity become separate tickets; multi-trip tickets merge into one card.
+  if (T.uses == null) for (let i = 0; i < B.qty; i++) S.tickets.unshift({ uid: uid(), type: T.id, name: T.name, left: null, validatedAt: null });
+  else S.tickets.unshift({ uid: uid(), type: T.id, name: T.name, left, validatedAt: null });
+  B.step = 4;
+}
+function resetBuy() { S.buy = { step: 1, type: null, qty: 1, pay: 'card' }; }
+
+const ACTIONS = {
+  setmode: a => { S.mode = a; S.sheet = null; if (a === 'full' && S.tab === 'profil') S.tab = 'accueil'; resetBuy(); },
+  reset: () => { clearInterval(tripTimer); S = freshState(); },
+  tab: a => { S.tab = a; S.fullStop = null; },
+  transport: a => { S.transport = a; },
+  fstop: a => { S.fullStop = S.fullStop === a ? null : a; },
+  locate: () => { S.fullStop = 'centre'; mapView.f = mapRatio(760, 500); mapView.hold = true; toast('Vous êtes au Centre-ville', 'my_location'); },
+  layers: () => { const order = ['tram', 'bus', 'navette', 'velo']; S.transport = order[(order.indexOf(S.transport) + 1) % 4]; },
+  fzoom: a => { const i = ZOOMS_FULL.indexOf(S.fzoom); S.fzoom = ZOOMS_FULL[Math.max(0, Math.min(ZOOMS_FULL.length - 1, i + +a))]; },
+  starttrip: () => { startTrip(); return true; },
+  canceltrip: () => { clearInterval(tripTimer); S.sheet = null; S.trip = null; toast('Trajet arrêté', 'info'); },
+  collect: () => { const q = CITY_QUESTS[S.trip.mode]; S.xp += q.xp; S.trips++; addCoins(q.coins, `+${q.coins} EcoCoins · +${q.xp} XP`); S.sheet = null; S.trip = null; },
+  qtab: a => { S.questTab = a; },
+  claimzen: () => { S.zenClaimed = true; addCoins(50, '+50 EcoCoins réclamés'); },
+  pedal: () => { S.veloKm = Math.min(3, +(S.veloKm + .6).toFixed(1)); if (S.veloKm >= 3) toast('Mission terminée, réclamez vos coins', 'pedal_bike'); },
+  claimvelo: () => { S.veloClaimed = true; addCoins(80, '+80 EcoCoins réclamés'); },
+  invite: () => { S.invited = true; toast('Lien d’invitation prêt à partager', 'group_add'); },
+  claimlegend: () => { S.legendClaimed = true; S.xp += 300; addCoins(150, 'Coffre rare ouvert : +150 coins, +300 XP'); },
+  shopcat: a => { S.shopCat = a; },
+  exchange: a => { S.sheetData = OFFERS.find(o => o.id === a) || SKINS.find(s => s.id === a); S.sheet = 'confirm'; },
+  doexchange: () => {
+    const o = S.sheetData; S.coins -= o.cost;
+    if (o.ticket) { const T = TICKETS.find(t => t.id === o.ticket); S.tickets.unshift({ uid: uid(), type: T.id, name: T.name, left: T.uses, validatedAt: null }); S.sheetData = { ticket: true }; }
+    else if (SKINS.includes(o)) { S.owned[o.id] = true; S.equipped = o.id; S.sheetData = { skin: true }; }
+    else { const code = 'ECO-' + Math.random().toString(36).slice(2, 6).toUpperCase(); S.coupons.unshift({ title: o.title, place: o.place, code }); S.sheetData = { code }; }
+    S.sheet = 'done';
+  },
+  equip: a => { S.equipped = a; toast('Équipement porté', 'checkroom'); },
+  coupons: () => { S.sheet = 'coupons'; },
+  rtab: a => { S.rankTab = a; },
+  bravo: () => { S.bravo = true; addCoins(10, 'Bravo envoyé à Thomas · +10 coins'); },
+  openbuy: () => { resetBuy(); S.sheet = 'buy'; },
+  opentickets: () => { S.sheet = 'tickets'; },
+  close: () => { S.sheet = null; },
+  backdrop: (a, e) => { if (e.target.classList.contains('backdrop')) S.sheet = null; else return true; },
+  buypick: a => { S.buy.type = a; S.buy.qty = 1; S.buy.pay = 'card'; S.buy.step = 2; },
+  qty: a => { S.buy.qty = Math.max(1, Math.min(10, S.buy.qty + +a)); },
+  buynext: () => { S.buy.step = 3; },
+  buyback: () => { S.buy.step = Math.max(1, S.buy.step - 1); },
+  paymethod: a => { S.buy.pay = a; },
+  pay: () => { payTicket(); },
+  validate: a => {
+    const t = S.tickets.find(x => x.uid === a);
+    t.validatedAt = new Date(); if (t.left != null) t.left--;
+    toast('Ticket validé, bon voyage !', 'verified');
+  },
+  // simple mode
+  stab: a => { if (S.mode === 'full') { S.sheet = null; return; } if (a === 'buy' && (S.sTab !== 'buy' || S.buy.step === 4)) resetBuy(); S.sTab = a; },
+  sstop: a => { S.stop = a; setTimeout(() => { const el = $('#stopinfo'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30); },
+  zoom: a => { const i = ZOOMS_SIMPLE.indexOf(S.zoom); S.zoom = ZOOMS_SIMPLE[Math.max(0, Math.min(ZOOMS_SIMPLE.length - 1, i + +a))]; },
+  big: () => { S.big = !S.big; },
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || !el.dataset.act) return;
+  const fn = ACTIONS[el.dataset.act];
+  if (!fn) return;
+  const skip = fn(el.dataset.arg, e);
+  if (!skip) render();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.sheet && S.sheet !== 'trip') { S.sheet = null; render(); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('g[data-act]')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
+});
+render();
+</script>
+
+</body>
+</html>
